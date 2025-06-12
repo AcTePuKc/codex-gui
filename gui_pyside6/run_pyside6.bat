@@ -1,49 +1,160 @@
 @echo off
-setlocal
+setlocal enabledelayedexpansion
+
+:: Paths
 set "SCRIPT_DIR=%~dp0"
+set "VENV_DIR=%REPO_ROOT%\.venv"
 set "REQ_FILE=%SCRIPT_DIR%requirements.uv.in"
 for %%I in ("%SCRIPT_DIR%..") do set "REPO_ROOT=%%~fI"
 
-rem Verify Node.js availability
+echo ======================================================
+echo  Codex GUI Launcher - Environment Setup Assistant
+echo ======================================================
+
+:: STEP 1: Node.js Check
+echo.
+echo [Step 1] Checking for Node.js...
 where node >nul 2>&1
 if errorlevel 1 (
-    echo Node.js is required but was not found in PATH.
+    echo Node.js not found. Please install it from https://nodejs.org/
+    echo Script will exit now.
+    pause
     exit /b 1
 )
+echo Node.js found.
 
-rem Determine package manager (pnpm preferred)
+:: STEP 2: Package Manager Check
+echo.
+echo [Step 2] Checking for package manager (pnpm preferred)...
 where pnpm >nul 2>&1
 if %errorlevel%==0 (
     set "PKG_MGR=pnpm"
+    echo pnpm found.
 ) else (
-    set "PKG_MGR=npm"
-)
-
-rem Ensure the Codex CLI is installed
-codex --help >nul 2>&1
-if errorlevel 1 (
-    echo Installing @openai/codex globally using %PKG_MGR%...
-    %PKG_MGR% install -g @openai/codex
-)
-
-python -c "import sys; sys.exit(0 if sys.prefix != getattr(sys,'base_prefix', sys.prefix) else 1)" >nul
-if "%ERRORLEVEL%"=="0" (
-    set "PYTHON_CMD=python"
-) else (
-    set "VENV_DIR=%USERPROFILE%\.hybrid_tts\venv"
-    if not exist "%VENV_DIR%" (
-        where uv >nul 2>&1
-        if %errorlevel%==0 (
-            uv venv "%VENV_DIR%" --python python3.11
-        ) else (
-            py -3.11 -m venv "%VENV_DIR%"
-        )
+    echo pnpm not found. Checking for npm fallback...
+    where npm >nul 2>&1
+    if %errorlevel%==0 (
+        set "PKG_MGR=npm"
+        echo npm found.
+        echo   Tip: pnpm is faster. You can install it via: npm install -g pnpm
+    ) else (
+        echo npm was not found either. Cannot continue without a package manager.
+        pause
+        exit /b 1
     )
-    "%VENV_DIR%\Scripts\pip.exe" install -U pip uv >nul
-    "%VENV_DIR%\Scripts\uv.exe" pip install -r "%REQ_FILE%"
-    set "PYTHON_CMD=%VENV_DIR%\Scripts\python.exe"
 )
 
+:STEP_3
+:: STEP 3: Python Environment Setup
+echo.
+echo [Step 3] Setting up Python environment...
+
+python -c "import sys; sys.exit(0 if hasattr(sys, 'real_prefix') or sys.base_prefix != sys.prefix else 1)" >nul 2>&1
+if %ERRORLEVEL%==0 (
+    set "PYTHON_CMD=python"
+    echo Running inside an active virtual environment.
+    goto AFTER_VENV
+)
+
+set "VENV_DIR=%USERPROFILE%\.hybrid_tts\venv"
+set "UV_BIN=%~dp0tools\uv.exe"
+
+:: Fallback: Check in ~/.local/bin
+if not exist "%UV_BIN%" (
+    if exist "%USERPROFILE%\.local\bin\uv.exe" (
+        set "UV_BIN=%USERPROFILE%\.local\bin\uv.exe"
+    )
+)
+
+:: Check PATH
+if not exist "%UV_BIN%" (
+    where uv >nul 2>&1
+    if %ERRORLEVEL%==0 (
+        for /f "delims=" %%I in ('where uv') do set "UV_BIN=%%I"
+    )
+)
+
+:: Prompt install if still not found
+if not exist "%UV_BIN%" (
+    echo UV not found in tools, PATH, or .local\bin
+    set /p USERCHOICE="Install UV using pip now? (Y/N): "
+    if /I "%USERCHOICE%"=="Y" (
+        pip install uv
+        echo UV installed via pip. Restarting this step...
+        goto STEP_3
+    ) else (
+        echo Continuing without UV.
+        set "UV_BIN="
+    )
+)
+
+:: Create venv
+if not exist "%VENV_DIR%" (
+    echo Virtual environment not found. Creating one...
+    if defined UV_BIN (
+        echo Using UV: %UV_BIN%
+        "%UV_BIN%" venv "%VENV_DIR%" --python python3.11
+    ) else (
+        py -3.11 -m venv "%VENV_DIR%"
+    )
+)
+
+:: Sanity check for pip.exe
+if not exist "%VENV_DIR%\Scripts\pip.exe" (
+    echo [ERROR] pip.exe not found. Virtual environment setup failed.
+    echo You may need to manually delete the broken venv and re-run the script.
+    pause
+    exit /b 1
+) else (
+    echo Found existing virtual environment.
+)
+
+:: Update pip and install requirements
+echo Updating pip...
+"%VENV_DIR%\Scripts\pip.exe" install -U pip >nul
+
+echo Installing requirements...
+if defined UV_BIN (
+    "%UV_BIN%" pip install -r "%REQ_FILE%"
+) else (
+    "%VENV_DIR%\Scripts\pip.exe" install -r "%REQ_FILE%"
+)
+
+set "PYTHON_CMD=%VENV_DIR%\Scripts\python.exe"
+
+:AFTER_VENV
+
+:: STEP 4: Codex CLI Check & Install
+echo.
+echo [Step 4] Checking for Codex CLI...
+where codex >nul 2>&1
+if errorlevel 1 (
+    echo Codex CLI not found. Attempting global install using %PKG_MGR%...
+
+    %PKG_MGR% install -g @openai/codex --timeout=15000 >nul 2>&1
+    if errorlevel 1 (
+        echo.
+        echo [WARN] First install attempt failed. Trying with alternative mirror...
+        %PKG_MGR% install -g @openai/codex --registry=https://registry.npmmirror.com --timeout=15000
+        if errorlevel 1 (
+            echo.
+            echo Failed to install @openai/codex using mirror.
+            echo You may need to install it manually:
+            echo     %PKG_MGR% install -g @openai/codex --registry=https://registry.npmmirror.com
+        ) else (
+            echo Codex CLI installed using mirror registry.
+        )
+    ) else (
+        echo Codex CLI successfully installed.
+    )
+) else (
+    echo Codex CLI already installed.
+)
+
+echo.
+echo [Step 5] Launching Codex GUI...
+rem === Launch GUI ===
 pushd "%REPO_ROOT%" >nul
-cmd.exe /c start "" %PYTHON_CMD% -m gui_pyside6.main %*
+echo [INFO] Launching Codex GUI...
+"%PYTHON_CMD%" -m gui_pyside6.main %*
 popd >nul

@@ -212,6 +212,8 @@ class MainWindow(QMainWindow):
         agent_item = self.agent_list.currentItem()
         agent_name = agent_item.text() if agent_item else ""
         self.agent_manager.set_active_agent(agent_name)
+        self.settings["selected_agent"] = agent_name
+        save_settings(self.settings)
         agent = self.agent_manager.active_agent or {}
 
         self.output_view.clear()

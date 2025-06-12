@@ -8,6 +8,16 @@ SETTINGS_PATH = Path(__file__).resolve().parent.parent / "config" / "settings.js
 DEFAULT_SETTINGS = {
     "temperature": 0.5,
     "max_tokens": 1024,
+    "provider": "openai",
+    "model": "codex-mini-latest",
+    "top_p": 1.0,
+    "frequency_penalty": 0.0,
+    "presence_penalty": 0.0,
+    "approval_mode": "suggest",
+    "auto_edit": False,
+    "full_auto": False,
+    "reasoning": "high",
+    "flex_mode": False,
     "selected_agent": "Python Expert",
     # Optional path to the Codex CLI executable. If empty, the adapter will
     # search the system PATH or use the bundled Node.js script.

@@ -82,11 +82,15 @@ Key modules:
 | Prompt Editor  | Main text input + response area |
 | Agent Switcher | Choose Codex personalities |
 | Tool Panel     | View/edit Codex-generated files |
-| Settings Dialog| Control temperature, max tokens, runtime env |
+| Settings Dialog| Control temperature, model, provider, penalties and approval modes |
 | Debug Console  | Terminal-style output window (optional) |
 | History Panel  | View past responses and clear them |
 
 All components are modular for future plugins.
+
+The settings dialog also lets you pick the provider and model, adjust top-p,
+frequency/presence penalties, toggle auto-edit or full-auto modes, set the
+reasoning effort, and enable flex mode.
 
 Enable **Verbose Mode** in the settings dialog to print the final CLI command before each run.
 

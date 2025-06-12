@@ -62,7 +62,9 @@ For agent presets, architecture decisions, and developer info, see:
 
 ## 🔌 Plugins & Backends
 
-Plugins listed in `plugins/manifest.json` are loaded at startup using `load_plugins`. Create a Python module under `plugins/` and enable it in the manifest to extend the UI.
+Plugins listed in `plugins/manifest.json` are loaded at startup using `load_plugins`.
+Place your plugin module inside `gui_pyside6/plugins/` and enable it in the manifest to extend the UI.
+Each module simply exposes a `register(window)` function that receives the main window instance.
 
 Example plugins included:
 

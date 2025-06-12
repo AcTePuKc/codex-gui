@@ -122,7 +122,7 @@ Planned plugin architecture will allow:
 - Agent hot-swapping via API
 - Custom GUI panels via Python modules
 
-Plugins will live in `plugins/` and use a manifest system.
+Plugins live in `gui_pyside6/plugins/` and use a manifest system.
 
 Current examples:
 
@@ -134,7 +134,8 @@ Current examples:
 ## 🛠️ Custom Agents/Plugins {#custom-agentsplugins}
 
 - **Agents**: Drop a JSON file into `resources/agents/`. New files are loaded on startup.
-- **Plugins**: Add a Python module under `plugins/` and list it in `plugins/manifest.json`. Only entries with `"enabled": true` are imported.
+- **Plugins**: Place your module inside `gui_pyside6/plugins/` and list it in `plugins/manifest.json`. Only entries with `"enabled": true` are imported.
+- **Interface**: Each plugin exports a `register(window)` function which receives the main window instance so you can add widgets or hook signals.
 - Some plugins require additional packages. The helper `ensure_backend_installed()` installs these into the active environment or `~/.hybrid_tts/venv` when needed.
 
 ---

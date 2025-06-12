@@ -106,6 +106,7 @@ echo Updating pip...
 "%VENV_DIR%\Scripts\python.exe" -m pip install -U pip uv >nul
 
 echo Installing requirements...
+=set "VIRTUAL_ENV=%VENV_DIR%"
 "%VENV_DIR%\Scripts\uv.exe" pip install -r "%REQ_FILE%"
 
 set "PYTHON_CMD=%VENV_DIR%\Scripts\python.exe"

@@ -39,7 +39,7 @@ else
     fi
     "$VENV_DIR/bin/python3" -m ensurepip --upgrade >/dev/null
     "$VENV_DIR/bin/pip" install -U pip uv >/dev/null
-    "$VENV_DIR/bin/uv" pip install -r "$REQ_FILE"
+    VIRTUAL_ENV="$VENV_DIR" "$VENV_DIR/bin/uv" pip install -r "$REQ_FILE"
     PYTHON_CMD="$VENV_DIR/bin/python3"
 fi
 

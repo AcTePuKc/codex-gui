@@ -28,7 +28,7 @@ This project reimagines the Codex CLI as a desktop application, offering:
 git clone https://github.com/AcTePuKc/codex-gui
 cd codex-gui
 pip install -r requirements.txt
-python main.py
+./run_pyside6.sh  # Windows: run_pyside6.bat
 ````
 
 > Requires Python 3.9+ and PySide6
@@ -39,6 +39,8 @@ python main.py
 codex-gui/
 ├── gui_pyside6/
 │   ├── main.py
+│   ├── run_pyside6.sh
+│   ├── run_pyside6.bat
 │   ├── ui/                   # UI components
 │   ├── backend/              # Logic & CLI adapters
 │   ├── utils/                # Helper functions

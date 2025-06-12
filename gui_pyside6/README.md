@@ -79,6 +79,17 @@ export OPENAI_API_KEY="sk-your-key"
 set OPENAI_API_KEY=sk-your-key
 ```
 
+## Login & Free Credits
+
+Under the **Help** menu you can run two useful commands:
+
+- **Login** – launches `codex --login` and opens a browser window to authenticate
+  your OpenAI account.
+- **Redeem Free Credits** – runs `codex --free` to claim any promotional credits
+  that may be available.
+
+The command output is shown in the main panel and logged in the Debug Console.
+
 ---
 
 ## Project Structure
@@ -124,6 +135,13 @@ editor. The status bar reports which agent is active and session progress.
 If the Codex CLI encounters an error, its stderr output will appear in the output panel.
 Detailed logs from Codex and tool executions are also sent to the dockable **Debug Console** accessible from the **View** menu.
 
+## Debug Console
+
+The console is a dockable pane that captures stdout and stderr from Codex and
+any running tools. Toggle it from **View → Debug Console**. The window offers
+**Info** and **Errors** checkboxes to filter messages and a **Clear** button to
+reset the log.
+
 ## Docs
 
 For agent presets, architecture decisions, and developer info, see:
@@ -145,6 +163,12 @@ Example plugins included:
 - **TTS Player** - speaks the current prompt using gTTS (disabled by default).
 
 Some plugins rely on optional TTS backends. These dependencies are installed on demand via `ensure_backend_installed()` which detects your active virtual environment or falls back to `~/.hybrid_tts/venv`.
+
+## Plugin Manager
+
+Use **Plugins → Plugin Manager** to enable or disable optional plugins from the
+GUI. The dialog lists each entry from `plugins/manifest.json` with a checkbox.
+Click **Save** to persist your selection and reload the plugins immediately.
 
 ## FAQ
 

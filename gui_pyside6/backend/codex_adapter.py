@@ -101,7 +101,7 @@ def build_command(
     cmd: list[str] = [cli_exe]
 
     def add_flag(flag: str, value: object | None) -> None:
-        if value is not None:
+        if value is not None and str(value) != "":
             cmd.extend([flag, str(value)])
 
     if "temperature" in agent:
@@ -116,7 +116,6 @@ def build_command(
         "top_p": "--top-p",
         "frequency_penalty": "--frequency-penalty",
         "presence_penalty": "--presence-penalty",
-        "model": "--model",
         "provider": "--provider",
         "approval_mode": "--approval-mode",
         "reasoning": "--reasoning",
@@ -135,6 +134,10 @@ def build_command(
             add_flag(flag, agent[key])
         elif key in settings:
             add_flag(flag, settings[key])
+
+    model = agent.get("model", settings.get("model"))
+    if model:
+        cmd.extend(["--model", str(model)])
 
     for key, flag in bool_flags.items():
         value = agent.get(key, settings.get(key))

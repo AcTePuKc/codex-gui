@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..backend.settings_manager import save_settings
+from ..backend.model_manager import get_available_models
 
 
 class SettingsDialog(QDialog):
@@ -67,11 +68,19 @@ class SettingsDialog(QDialog):
         self.provider_edit = QLineEdit()
         self.provider_edit.setText(settings.get("provider", "openai"))
         layout.addWidget(self.provider_edit)
+        self.provider_edit.editingFinished.connect(self.load_models)
 
         layout.addWidget(QLabel("Model:"))
-        self.model_edit = QLineEdit()
-        self.model_edit.setText(settings.get("model", "codex-mini-latest"))
-        layout.addWidget(self.model_edit)
+        model_row = QWidget()
+        model_layout = QHBoxLayout(model_row)
+        model_layout.setContentsMargins(0, 0, 0, 0)
+        self.model_combo = QComboBox()
+        refresh_btn = QPushButton("Refresh")
+        refresh_btn.clicked.connect(self.load_models)
+        model_layout.addWidget(self.model_combo)
+        model_layout.addWidget(refresh_btn)
+        layout.addWidget(model_row)
+        self.load_models()
 
         layout.addWidget(QLabel("Approval Mode:"))
         self.approval_combo = QComboBox()
@@ -126,6 +135,26 @@ class SettingsDialog(QDialog):
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
 
+    def load_models(self) -> None:
+        """Populate the model combo box from the selected provider."""
+        provider = self.provider_edit.text().strip() or "openai"
+        try:
+            models = get_available_models(provider)
+        except Exception:
+            models = []
+
+        current = self.settings.get("model", "")
+        self.model_combo.clear()
+        if models:
+            self.model_combo.addItems(models)
+        if current:
+            index = self.model_combo.findText(current)
+            if index >= 0:
+                self.model_combo.setCurrentIndex(index)
+            elif not models:
+                self.model_combo.addItem(current)
+                self.model_combo.setCurrentIndex(0)
+
     def accept(self) -> None:  # type: ignore[override]
         self.settings["temperature"] = float(self.temp_spin.value())
         self.settings["top_p"] = float(self.top_p_spin.value())
@@ -133,7 +162,7 @@ class SettingsDialog(QDialog):
         self.settings["presence_penalty"] = float(self.presence_spin.value())
         self.settings["max_tokens"] = int(self.max_spin.value())
         self.settings["provider"] = self.provider_edit.text().strip()
-        self.settings["model"] = self.model_edit.text().strip()
+        self.settings["model"] = self.model_combo.currentText().strip()
         self.settings["approval_mode"] = self.approval_combo.currentText()
         self.settings["auto_edit"] = self.auto_edit_check.isChecked()
         self.settings["full_auto"] = self.full_auto_check.isChecked()

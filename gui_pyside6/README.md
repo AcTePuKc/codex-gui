@@ -26,6 +26,7 @@ This project reimagines the Codex CLI as a desktop application, offering:
 - Optional verbose mode prints the exact CLI command before execution
 - Quiet mode hides progress output while Full Context sends the entire conversation. Both map to the CLI flags `--quiet` and `--full-context`
 - Dockable **Debug Console** shows stdout/stderr from Codex and tool runs
+- Show or hide the left and right panels, or the Debug Console, from the **View** menu
 
 Quiet and full context can be toggled from the **Settings** dialog.
 Example snippet:

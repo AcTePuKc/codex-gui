@@ -128,6 +128,7 @@ Current examples:
 
 - **Syntax Formatter** – adds a button that formats the prompt using Black.
 - **Agent Logger** – saves prompts and responses to `agent_log.txt` when enabled.
+- **TTS Player** – speaks the current prompt using gTTS (disabled by default).
 
 ---
 

@@ -83,7 +83,7 @@ Key modules:
 | Agent Switcher | Choose Codex personalities |
 | Tool Panel     | View/edit Codex-generated files |
 | Settings Dialog| Control temperature, model, provider, penalties and approval modes |
-| Debug Console  | Terminal-style output window (optional) |
+| Debug Console  | Dockable log viewer for stdout/stderr |
 | History Panel  | View past responses and clear them |
 | Images List    | Attach images via drag-and-drop |
 
@@ -125,6 +125,8 @@ The main window uses a horizontal splitter:
 Run and Stop actions appear in both a toolbar at the top and a button bar below
 the editor. The bottom status bar shows the active agent and session updates.
 If the CLI fails, its stderr messages are printed in the output panel.
+Detailed stdout and stderr are also routed to the **Debug Console**, which you
+can toggle from the **View** menu and filter by errors or info.
 
 ---
 

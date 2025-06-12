@@ -21,8 +21,9 @@ from ..backend.tool_runner import run_tool_script
 class ToolsPanel(QDialog):
     """Dialog listing scripts from the project tools/ directory."""
 
-    def __init__(self, parent=None) -> None:
+    def __init__(self, parent=None, debug_console=None) -> None:
         super().__init__(parent)
+        self.debug_console = debug_console
         self.setWindowTitle("Tools")
 
         layout = QVBoxLayout(self)
@@ -82,7 +83,19 @@ class ToolsPanel(QDialog):
             return
         script_path = self.tools_dir() / item.text()
         backend_name = self.backend_combo.currentData()
-        _, stdout, stderr = run_tool_script(script_path, backend_name=backend_name)
+        def log_fn(text: str, level: str) -> None:
+            if not self.debug_console:
+                return
+            if level == "error":
+                self.debug_console.append_error(text)
+            else:
+                self.debug_console.append_info(text)
+
+        _, stdout, stderr = run_tool_script(
+            script_path,
+            backend_name=backend_name,
+            log_fn=log_fn,
+        )
         self.output_view.clear()
         if stdout:
             self.output_view.appendPlainText(stdout)

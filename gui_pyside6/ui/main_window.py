@@ -106,7 +106,12 @@ class MainWindow(QMainWindow):
         current_name = self.settings.get("selected_agent", "")
         matches = self.agent_list.findItems(current_name, Qt.MatchExactly)
         if matches:
-            self.agent_list.setCurrentItem(matches[0])
+            item = matches[0]
+            self.agent_list.setCurrentItem(item)
+            self.agent_manager.set_active_agent(item.text())
+        elif self.agent_list.count() > 0:
+            self.agent_list.setCurrentRow(0)
+            self.agent_manager.set_active_agent(self.agent_list.currentItem().text())
         self.agent_list.currentTextChanged.connect(self.on_agent_changed)
         left_layout.addWidget(self.agent_list)
 

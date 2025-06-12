@@ -12,7 +12,8 @@ def register(window) -> None:
 
     def log_prompt() -> None:
         prompt = window.prompt_edit.toPlainText()
-        agent = window.agent_combo.currentText()
+        current = window.agent_list.currentItem()
+        agent = current.text() if current else ""
         with log_file.open("a", encoding="utf-8") as fh:
             fh.write(f"\n[{datetime.now().isoformat()}] Agent: {agent}\n")
             fh.write(prompt + "\n")

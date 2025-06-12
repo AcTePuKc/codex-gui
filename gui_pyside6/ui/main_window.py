@@ -2,7 +2,13 @@ from __future__ import annotations
 
 
 from PySide6.QtCore import QThread, Signal, Qt
-from PySide6.QtGui import QFontDatabase, QAction
+from PySide6.QtGui import (
+    QFontDatabase,
+    QAction,
+    QTextCharFormat,
+    QColor,
+    QTextCursor,
+)
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QMainWindow,
@@ -44,6 +50,10 @@ class CodexWorker(QThread):
                 self.prompt, self.agent, self.settings
             ):
                 self.line_received.emit(line)
+        except codex_adapter.CodexError as exc:
+            for err_line in exc.stderr.strip().splitlines():
+                self.line_received.emit(f"Error: {err_line}")
+            self.line_received.emit(f"Error: {exc}")
         except Exception as exc:  # pylint: disable=broad-except
             self.line_received.emit(f"Error: {exc}")
         finally:
@@ -216,7 +226,13 @@ class MainWindow(QMainWindow):
         self.status_bar.showMessage("Running Codex session...")
 
     def append_output(self, text: str) -> None:
-        self.output_view.appendPlainText(text)
+        cursor = self.output_view.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        fmt = QTextCharFormat()
+        if text.startswith("Error:"):
+            fmt.setForeground(QColor("red"))
+        cursor.insertText(text + "\n", fmt)
+        self.output_view.setTextCursor(cursor)
         self.history_view.appendPlainText(text)
 
     def session_finished(self) -> None:

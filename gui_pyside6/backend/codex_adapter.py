@@ -6,7 +6,16 @@ import subprocess
 from collections.abc import Iterable
 from pathlib import Path
 
-__all__ = ["start_session", "stop_session", "ensure_cli_available"]
+
+class CodexError(RuntimeError):
+    """Raised when the Codex CLI exits with an error."""
+
+    def __init__(self, return_code: int, stderr: str) -> None:
+        super().__init__(f"Codex CLI exited with code {return_code}")
+        self.return_code = return_code
+        self.stderr = stderr
+
+__all__ = ["start_session", "stop_session", "ensure_cli_available", "CodexError"]
 
 # Global process handle for the currently running Codex session
 _current_process: subprocess.Popen[str] | None = None
@@ -161,9 +170,7 @@ def start_session(
         return_code = process.wait()
         _current_process = None
         if return_code != 0 and not _terminated:
-            raise RuntimeError(
-                f"Codex CLI exited with code {return_code}: {stderr_output.strip()}"
-            )
+            raise CodexError(return_code, stderr_output)
 
 
 def stop_session() -> None:

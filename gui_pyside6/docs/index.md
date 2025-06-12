@@ -85,6 +85,7 @@ Key modules:
 | Settings Dialog| Control temperature, model, provider, penalties and approval modes |
 | Debug Console  | Terminal-style output window (optional) |
 | History Panel  | View past responses and clear them |
+| Images List    | Attach images via drag-and-drop |
 
 All components are modular for future plugins.
 
@@ -100,6 +101,10 @@ Use **History ▶ Browse Sessions** to open a list of saved sessions from
 `~/.codex/sessions`. Pick a session to **View** its rollout (runs the CLI with
 `--view`) or **Resume** it which inserts the prompt `Resume this session: <file>`
 and starts a new Codex run.
+
+### Image Attachments
+
+Drag image files onto the **Images** list or click **Add Image** to attach screenshots or diagrams to your prompt. Selected files are passed to the CLI using the `--image` flag.
 
 ---
 
@@ -180,7 +185,7 @@ Current examples:
 - [ ] Build debug panel (logs, errors, console)
 - [ ] Execution in `uv` sandbox
 - [ ] Plugin manager
-- [ ] Drag-and-drop file attachments
+- [x] Drag-and-drop file attachments
 
 ---
 

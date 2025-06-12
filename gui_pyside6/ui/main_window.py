@@ -22,6 +22,7 @@ from PySide6.QtWidgets import (
     QSplitter,
     QListWidget,
     QFileDialog,
+    QLabel,
 )
 
 from .settings_dialog import SettingsDialog
@@ -32,6 +33,36 @@ from ..backend.agent_manager import AgentManager
 from ..plugins.loader import load_plugins
 from ..utils.highlighter import PythonHighlighter
 from pathlib import Path
+
+
+class ImageDropList(QListWidget):
+    """List widget that accepts image file drops."""
+
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.setAcceptDrops(True)
+
+    def dragEnterEvent(self, event) -> None:  # type: ignore[override]
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+        else:
+            super().dragEnterEvent(event)
+
+    def dragMoveEvent(self, event) -> None:  # type: ignore[override]
+        if event.mimeData().hasUrls():
+            event.acceptProposedAction()
+        else:
+            super().dragMoveEvent(event)
+
+    def dropEvent(self, event) -> None:  # type: ignore[override]
+        if event.mimeData().hasUrls():
+            for url in event.mimeData().urls():
+                path = url.toLocalFile()
+                if path:
+                    self.addItem(path)
+            event.acceptProposedAction()
+        else:
+            super().dropEvent(event)
 
 
 class CodexWorker(QThread):
@@ -46,12 +77,14 @@ class CodexWorker(QThread):
         agent: dict,
         settings: dict,
         view_path: str | None = None,
+        images: list[str] | None = None,
     ) -> None:
         super().__init__()
         self.prompt = prompt
         self.agent = agent
         self.settings = settings
         self.view_path = view_path
+        self.images = images or []
 
     def run(self) -> None:  # type: ignore[override]
         try:
@@ -60,6 +93,7 @@ class CodexWorker(QThread):
                 self.agent,
                 self.settings,
                 view=self.view_path,
+                images=self.images,
             ):
                 self.line_received.emit(line)
         except codex_adapter.CodexError as exc:
@@ -177,6 +211,19 @@ class MainWindow(QMainWindow):
         top_bar.addWidget(self.settings_btn)
         self.settings_btn.clicked.connect(self.open_settings_dialog)
 
+        images_row = QHBoxLayout()
+        center_layout.addLayout(images_row)
+        images_row.addWidget(QLabel("Images:"))
+        self.image_list = ImageDropList()
+        self.image_list.setMaximumHeight(60)
+        images_row.addWidget(self.image_list)
+        self.add_image_btn = QPushButton("Add Image")
+        self.add_image_btn.clicked.connect(self.browse_images)
+        images_row.addWidget(self.add_image_btn)
+        self.remove_image_btn = QPushButton("Remove")
+        self.remove_image_btn.clicked.connect(self.remove_selected_images)
+        images_row.addWidget(self.remove_image_btn)
+
         inner_splitter = QSplitter(Qt.Vertical)
 
         self.prompt_edit = QPlainTextEdit()
@@ -237,10 +284,23 @@ class MainWindow(QMainWindow):
         agent = self.agent_manager.active_agent or {}
 
         self.output_view.clear()
-        cmd = codex_adapter.build_command(prompt_text, agent, self.settings, view=view_path)
+        image_paths = [self.image_list.item(i).text() for i in range(self.image_list.count())]
+        cmd = codex_adapter.build_command(
+            prompt_text,
+            agent,
+            self.settings,
+            view=view_path,
+            images=image_paths if image_paths else None,
+        )
         if self.settings.get("verbose"):
             self.append_output("$ " + " ".join(cmd))
-        self.worker = CodexWorker(prompt_text, agent, self.settings, view_path)
+        self.worker = CodexWorker(
+            prompt_text,
+            agent,
+            self.settings,
+            view_path,
+            images=image_paths,
+        )
         self.worker.line_received.connect(self.append_output)
         self.worker.finished.connect(self.session_finished)
         self.worker.start()
@@ -289,6 +349,21 @@ class MainWindow(QMainWindow):
     def clear_history(self) -> None:
         """Clear the history panel."""
         self.history_view.clear()
+
+    def browse_images(self) -> None:
+        files, _ = QFileDialog.getOpenFileNames(
+            self,
+            "Select image files",
+            str(Path.home()),
+            "Image Files (*.png *.jpg *.jpeg *.gif *.bmp)",
+        )
+        for path in files:
+            if not any(path == self.image_list.item(i).text() for i in range(self.image_list.count())):
+                self.image_list.addItem(path)
+
+    def remove_selected_images(self) -> None:
+        for item in self.image_list.selectedItems():
+            self.image_list.takeItem(self.image_list.row(item))
 
     def update_agent_description(self) -> None:
         """Update the description panel with the active agent's details."""

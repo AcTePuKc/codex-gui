@@ -1,15 +1,15 @@
-## 📚 `docs/index.md` – Full Project Documentation (Landing Page)
+## `docs/index.md` - Full Project Documentation (Landing Page)
 
 ```markdown
 # Codex-GUI Documentation
 
-Welcome to the documentation hub for **Codex-GUI** – a PySide6 graphical frontend for [OpenAI's Codex CLI](https://github.com/openai/codex).
+Welcome to the documentation hub for **Codex-GUI** - a PySide6 graphical frontend for [OpenAI's Codex CLI](https://github.com/openai/codex).
 
 This app transforms the CLI-based Codex experience into a rich, extensible desktop GUI with real-time code assistance, agent control, and execution support.
 
 ---
 
-## 🔗 Contents
+## Contents
 
 - [Overview](#overview)
 - [Launching](#launching)
@@ -25,18 +25,18 @@ This app transforms the CLI-based Codex experience into a rich, extensible deskt
 
 ---
 
-## 📦 Overview
+## Overview
 
 Codex-GUI is designed for developers who want a more interactive experience with Codex. Instead of typing in a terminal, you can now:
 
 - Use agents to control behavior (e.g. Python-focused, refactor-only, DevOps helper)
 - Generate and test code live inside a `tools/` sandbox
 - Visualize file context, syntax, and output
-- Manage prompt history and multi-tab sessions (History ▶ Clear)
+- Manage prompt history and multi-tab sessions (History -> Clear)
 
 ---
 
-## 🚀 Launching {#launching}
+## Launching {#launching}
 
 1. Install [`uv`](https://github.com/astral-sh/uv).
 2. Verify the **Codex CLI** is built by running `node bin/codex.js --help` in the `codex-cli` directory. If it fails, run `pnpm install && pnpm build` there.
@@ -49,23 +49,21 @@ uv pip install -r requirements.uv.in
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
-
-┌──────────────┐
-│  PySide6 UI  │ ◄─────── User Interface Layer
-└─────┬────────┘
-│
-┌─────▼─────┐
-│ Backend   │ ◄─────── Codex Adapter (calls CLI functions)
-│ Manager   │
-└─────┬─────┘
-│
-┌─────▼─────────────┐
-│ Codex CLI Wrapper │ ◄────── CLI compatibility layer
-└───────────────────┘
-
++--------------+
+|  PySide6 UI  | <-- User Interface Layer
++--------------+
+      |
++-----------+
+| Backend   | <-- Codex Adapter (calls CLI functions)
+| Manager   |
++-----------+
+      |
++---------------------+
+| Codex CLI Wrapper   | <-- CLI compatibility layer
++---------------------+
 ```
 
 Key modules:
@@ -75,7 +73,7 @@ Key modules:
 
 ---
 
-## 🖼️ UI Components
+## UI Components
 
 | Component       | Description |
 |----------------|-------------|
@@ -104,7 +102,7 @@ self.full_context_check = QCheckBox("Full Context")
 
 ### Session History
 
-Use **History ▶ Browse Sessions** to open a list of saved sessions from
+Use **History -> Browse Sessions** to open a list of saved sessions from
 `~/.codex/sessions`. Pick a session to **View** its rollout (runs the CLI with
 `--view`) or **Resume** it which inserts the prompt `Resume this session: <file>`
 and starts a new Codex run.
@@ -115,13 +113,13 @@ Drag image files onto the **Images** list or click **Add Image** to attach scree
 
 ---
 
-## 🗺️ IDE Layout
+## IDE Layout
 
 The main window uses a horizontal splitter:
 
-- **Left panel** – agent list and current description.
-- **Center panel** – prompt editor with streaming output beneath.
-- **Right panel** – scrollable history of the session.
+- **Left panel** - agent list and current description.
+- **Center panel** - prompt editor with streaming output beneath.
+- **Right panel** - scrollable history of the session.
 
 Run and Stop actions appear in both a toolbar at the top and a button bar below
 the editor. The bottom status bar shows the active agent and session updates.
@@ -132,7 +130,7 @@ the **View** menu, and the console lets you filter by errors or info.
 
 ---
 
-## 🧠 Agent System
+## Agent System
 
 Agents are JSON-defined behaviors stored under `resources/agents/`. Each includes:
 
@@ -145,7 +143,7 @@ See [`AGENTS.md`](../AGENTS.md) for structure and editing instructions.
 
 ---
 
-## 🧪 Tool Execution
+## Tool Execution
 
 Codex-generated scripts are saved to the `/tools/` folder.
 
@@ -158,7 +156,7 @@ Security: No script is run unless the user explicitly clicks **Run**.
 
 ---
 
-## 📂 File Context Detection
+## File Context Detection
 
 At startup the GUI scans the current working directory for common source files
 (Python, JavaScript, Rust, etc.). Any discovered paths appear in a **Files** list
@@ -170,7 +168,7 @@ When a Codex session is launched these selected files are passed to the CLI via
 
 ---
 
-## 🧩 Planned Plugin/Extension Support
+## Planned Plugin/Extension Support
 
 Planned plugin architecture will allow:
 
@@ -183,13 +181,13 @@ Plugins live in `gui_pyside6/plugins/` and use a manifest system.
 
 Current examples:
 
-- **Syntax Formatter** – adds a button that formats the prompt using Black.
-- **Agent Logger** – saves prompts and responses to `agent_log.txt` when enabled.
-- **TTS Player** – speaks the current prompt using gTTS (disabled by default).
+- **Syntax Formatter** - adds a button that formats the prompt using Black.
+- **Agent Logger** - saves prompts and responses to `agent_log.txt` when enabled.
+- **TTS Player** - speaks the current prompt using gTTS (disabled by default).
 
 ---
 
-## 🛠️ Custom Agents/Plugins {#custom-agentsplugins}
+## Custom Agents/Plugins {#custom-agentsplugins}
 
 - **Agents**: Drop a JSON file into `resources/agents/`. New files are loaded on startup.
 - **Plugins**: Place your module inside `gui_pyside6/plugins/` and list it in `plugins/manifest.json`. Only entries with `"enabled": true` are imported.
@@ -198,7 +196,7 @@ Current examples:
 
 ---
 
-## 🗺️ Roadmap (Q3-Q4 2025)
+## Roadmap (Q3-Q4 2025)
 
 - [x] Basic GUI shell (prompt, agent, response)
 - [x] Load/save agents
@@ -212,16 +210,16 @@ Current examples:
 
 ---
 
-## ❓ FAQ
+## FAQ
 
 **Q: Is this officially supported by OpenAI?**  
-A: No — this is a community project built on their CLI.
+A: No - this is a community project built on their CLI.
 
 **Q: Can I use my own Codex API key?**  
-A: Yes — support for `.env` and GUI-based key config is planned.
+A: Yes - support for `.env` and GUI-based key config is planned.
 
-**Q: Does this modify Codex’s output?**  
-A: No — it wraps the CLI and displays output cleanly with added controls.
+**Q: Does this modify Codex's output?**  
+A: No - it wraps the CLI and displays output cleanly with added controls.
 
 ---
 

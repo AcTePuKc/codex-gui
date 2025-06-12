@@ -33,9 +33,9 @@ cd codex-gui/gui_pyside6
 > Requires Python 3.9+
 
 Running the script detects an active virtual environment. If none is found, it
-creates `~/.hybrid_tts/venv` (Windows: `%USERPROFILE%\.hybrid_tts\venv`),
-installs the requirements using `uv`, and then launches the GUI in a separate
-terminal window.
+creates `~/.hybrid_tts/venv` (Windows: `%USERPROFILE%\.hybrid_tts\venv`) for
+the optional text-to-speech backends, installs the requirements using `uv`, and
+then launches the GUI in a separate terminal window.
 
 ## 🔧 Project Structure (WIP)
 
@@ -75,6 +75,15 @@ Example plugins included:
 - **Agent Logger** – records prompts and responses to `agent_log.txt` when enabled.
 
 Some plugins rely on optional TTS backends. These dependencies are installed on demand via `ensure_backend_installed()` which detects your active virtual environment or falls back to `~/.hybrid_tts/venv`.
+
+## ❓ FAQ
+
+### Why was `~/.hybrid_tts/venv` created?
+
+When the launcher script doesn't find an active Python virtual environment, it
+initializes one at `~/.hybrid_tts/venv` (or `%USERPROFILE%\.hybrid_tts\venv` on
+Windows) for the optional text-to-speech backends. If you don't plan to use any
+TTS features, you can safely remove this directory.
 
 ## 🙏 Credits
 

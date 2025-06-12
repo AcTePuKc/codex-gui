@@ -15,6 +15,7 @@ This app transforms the CLI-based Codex experience into a rich, extensible deskt
 - [Launching](#launching)
 - [Architecture](#architecture)
 - [UI Components](#ui-components)
+- [IDE Layout](#ide-layout)
 - [Agent System](#agent-system)
 - [Tool Execution](#tool-execution)
 - [Plugin/Extension Support](#planned-pluginextension-support)
@@ -38,7 +39,8 @@ Codex-GUI is designed for developers who want a more interactive experience with
 ## 🚀 Launching {#launching}
 
 1. Install [`uv`](https://github.com/astral-sh/uv).
-2. From the `gui_pyside6` folder run:
+2. Verify the **Codex CLI** is built by running `node bin/codex.js --help` in the `codex-cli` directory. If it fails, run `pnpm install && pnpm build` there.
+3. From the `gui_pyside6` folder run:
 
 ```bash
 uv pip install -r requirements.uv.in
@@ -85,6 +87,19 @@ Key modules:
 | History Panel  | View past responses and clear them |
 
 All components are modular for future plugins.
+
+---
+
+## 🗺️ IDE Layout
+
+The main window uses a horizontal splitter:
+
+- **Left panel** – agent list and current description.
+- **Center panel** – prompt editor with streaming output beneath.
+- **Right panel** – scrollable history of the session.
+
+Run and Stop actions appear in both a toolbar at the top and a button bar below
+the editor. The bottom status bar shows the active agent and session updates.
 
 ---
 

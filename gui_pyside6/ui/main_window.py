@@ -3,15 +3,19 @@ from __future__ import annotations
 
 from PySide6.QtCore import QThread, Signal
 from PySide6.QtWidgets import (
+    QAction,
     QComboBox,
     QHBoxLayout,
     QMainWindow,
+    QMenuBar,
+    QToolBar,
     QPushButton,
     QTextEdit,
     QVBoxLayout,
     QWidget,
     QLabel,
     QPlainTextEdit,
+    QMessageBox,
 )
 
 from .settings_dialog import SettingsDialog
@@ -54,6 +58,42 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("Codex-GUI")
 
+        # ----------------------- Menu Bar -----------------------
+        menu_bar = QMenuBar(self)
+        self.setMenuBar(menu_bar)
+
+        file_menu = menu_bar.addMenu("File")
+        settings_menu = menu_bar.addMenu("Settings")
+        help_menu = menu_bar.addMenu("Help")
+
+        self.run_action = QAction("Run", self)
+        self.run_action.triggered.connect(self.start_codex)
+        file_menu.addAction(self.run_action)
+
+        self.stop_action = QAction("Stop", self)
+        self.stop_action.setEnabled(False)
+        self.stop_action.triggered.connect(self.stop_codex)
+        file_menu.addAction(self.stop_action)
+
+        settings_action = QAction("Settings", self)
+        settings_action.triggered.connect(self.open_settings_dialog)
+        settings_menu.addAction(settings_action)
+
+        about_action = QAction("About", self)
+        help_menu.addAction(about_action)
+        about_action.triggered.connect(
+            lambda: QMessageBox.about(self, "About Codex-GUI", "Codex-GUI")
+        )
+
+        # ----------------------- Toolbar -----------------------
+        toolbar = QToolBar("Main", self)
+        self.addToolBar(toolbar)
+        toolbar.addAction(self.run_action)
+        toolbar.addAction(self.stop_action)
+
+        # Instantiate status bar
+        self.status_bar = self.statusBar()
+
         central = QWidget(self)
         self.setCentralWidget(central)
 
@@ -70,6 +110,9 @@ class MainWindow(QMainWindow):
             self.agent_combo.setCurrentIndex(index)
         top_bar.addWidget(self.agent_combo)
         self.agent_combo.currentTextChanged.connect(self.on_agent_changed)
+
+        # Display current agent in the status bar
+        self.status_bar.showMessage(f"Active Agent: {self.agent_combo.currentText()}")
 
         self.settings_btn = QPushButton("Settings")
         top_bar.addWidget(self.settings_btn)
@@ -114,6 +157,9 @@ class MainWindow(QMainWindow):
         self.worker.start()
         self.run_btn.setEnabled(False)
         self.stop_btn.setEnabled(True)
+        self.run_action.setEnabled(False)
+        self.stop_action.setEnabled(True)
+        self.status_bar.showMessage("Running Codex session...")
 
     def append_output(self, text: str) -> None:
         self.output_view.append(text)
@@ -121,6 +167,9 @@ class MainWindow(QMainWindow):
     def session_finished(self) -> None:
         self.run_btn.setEnabled(True)
         self.stop_btn.setEnabled(False)
+        self.run_action.setEnabled(True)
+        self.stop_action.setEnabled(False)
+        self.status_bar.showMessage("Session finished")
 
     def stop_codex(self) -> None:
         codex_adapter.stop_session()
@@ -133,7 +182,9 @@ class MainWindow(QMainWindow):
         self.agent_manager.set_active_agent(name)
         self.settings["selected_agent"] = name
         save_settings(self.settings)
+        self.status_bar.showMessage(f"Active Agent: {name}")
 
     def open_settings_dialog(self) -> None:
         dialog = SettingsDialog(self.settings, self)
         dialog.exec()
+        self.status_bar.showMessage("Settings updated")

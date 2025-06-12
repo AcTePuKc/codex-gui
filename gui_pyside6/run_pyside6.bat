@@ -57,6 +57,7 @@ if %ERRORLEVEL%==0 (
 
 set "VENV_DIR=%USERPROFILE%\.hybrid_tts\venv"
 set "UV_BIN=%~dp0tools\uv.exe"
+echo Using virtual environment at: %VENV_DIR%
 
 :: Fallback: Check in ~/.local/bin
 if not exist "%UV_BIN%" (

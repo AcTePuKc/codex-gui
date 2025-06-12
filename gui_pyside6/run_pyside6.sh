@@ -33,6 +33,7 @@ then
     PYTHON_CMD="python3"
 else
     VENV_DIR="$HOME/.hybrid_tts/venv"
+    echo "Using virtual environment at: $VENV_DIR"
     if [ ! -d "$VENV_DIR" ]; then
         python3 -m venv "$VENV_DIR"
     fi

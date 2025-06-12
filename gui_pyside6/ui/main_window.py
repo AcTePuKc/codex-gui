@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 
-from PySide6.QtCore import QThread, Signal
+from PySide6.QtCore import QThread, Signal, Qt
 from PySide6.QtWidgets import (
     QAction,
-    QComboBox,
     QHBoxLayout,
     QMainWindow,
     QMenuBar,
@@ -13,9 +12,10 @@ from PySide6.QtWidgets import (
     QTextEdit,
     QVBoxLayout,
     QWidget,
-    QLabel,
     QPlainTextEdit,
     QMessageBox,
+    QSplitter,
+    QListWidget,
 )
 
 from .settings_dialog import SettingsDialog
@@ -94,25 +94,41 @@ class MainWindow(QMainWindow):
         # Instantiate status bar
         self.status_bar = self.statusBar()
 
-        central = QWidget(self)
-        self.setCentralWidget(central)
+        splitter = QSplitter(Qt.Horizontal, self)
+        self.setCentralWidget(splitter)
 
-        layout = QVBoxLayout(central)
+        # ----------------------- Left Panel -----------------------
+        left_panel = QWidget()
+        left_layout = QVBoxLayout(left_panel)
+
+        self.agent_list = QListWidget()
+        self.agent_list.addItems([a.get("name", "") for a in agent_manager.agents])
+        current_name = self.settings.get("selected_agent", "")
+        matches = self.agent_list.findItems(current_name, Qt.MatchExactly)
+        if matches:
+            self.agent_list.setCurrentItem(matches[0])
+        self.agent_list.currentTextChanged.connect(self.on_agent_changed)
+        left_layout.addWidget(self.agent_list)
+
+        # Show description and status for the initially selected agent
+        self.update_agent_description()
+        if self.agent_list.currentItem():
+            self.status_bar.showMessage(
+                f"Active Agent: {self.agent_list.currentItem().text()}"
+            )
+
+        self.agent_desc = QPlainTextEdit()
+        self.agent_desc.setReadOnly(True)
+        left_layout.addWidget(self.agent_desc)
+
+        splitter.addWidget(left_panel)
+
+        # ----------------------- Center Panel -----------------------
+        center_widget = QWidget()
+        center_layout = QVBoxLayout(center_widget)
 
         top_bar = QHBoxLayout()
-        layout.addLayout(top_bar)
-
-        top_bar.addWidget(QLabel("Agent:"))
-        self.agent_combo = QComboBox()
-        self.agent_combo.addItems([a.get("name", "") for a in agent_manager.agents])
-        index = self.agent_combo.findText(self.settings.get("selected_agent", ""))
-        if index >= 0:
-            self.agent_combo.setCurrentIndex(index)
-        top_bar.addWidget(self.agent_combo)
-        self.agent_combo.currentTextChanged.connect(self.on_agent_changed)
-
-        # Display current agent in the status bar
-        self.status_bar.showMessage(f"Active Agent: {self.agent_combo.currentText()}")
+        center_layout.addLayout(top_bar)
 
         self.settings_btn = QPushButton("Settings")
         top_bar.addWidget(self.settings_btn)
@@ -120,10 +136,10 @@ class MainWindow(QMainWindow):
 
         self.prompt_edit = QPlainTextEdit()
         self.prompt_edit.setPlaceholderText("Enter your prompt here...")
-        layout.addWidget(self.prompt_edit)
+        center_layout.addWidget(self.prompt_edit)
 
         button_bar = QHBoxLayout()
-        layout.addLayout(button_bar)
+        center_layout.addLayout(button_bar)
         self.button_bar = button_bar
 
         self.run_btn = QPushButton("Run")
@@ -137,7 +153,16 @@ class MainWindow(QMainWindow):
 
         self.output_view = QTextEdit()
         self.output_view.setReadOnly(True)
-        layout.addWidget(self.output_view)
+        center_layout.addWidget(self.output_view)
+
+        splitter.addWidget(center_widget)
+
+        # ----------------------- Right Panel -----------------------
+        self.history_view = QPlainTextEdit()
+        self.history_view.setReadOnly(True)
+        splitter.addWidget(self.history_view)
+
+        splitter.setStretchFactor(1, 1)
 
         # Load optional plugins defined in plugins/manifest.json
         load_plugins(self)
@@ -146,7 +171,8 @@ class MainWindow(QMainWindow):
         if self.worker and self.worker.isRunning():
             return
         prompt = self.prompt_edit.toPlainText().strip()
-        agent_name = self.agent_combo.currentText()
+        agent_item = self.agent_list.currentItem()
+        agent_name = agent_item.text() if agent_item else ""
         self.agent_manager.set_active_agent(agent_name)
         agent = self.agent_manager.active_agent or {}
 
@@ -163,6 +189,7 @@ class MainWindow(QMainWindow):
 
     def append_output(self, text: str) -> None:
         self.output_view.append(text)
+        self.history_view.appendPlainText(text)
 
     def session_finished(self) -> None:
         self.run_btn.setEnabled(True)
@@ -178,13 +205,22 @@ class MainWindow(QMainWindow):
         self.session_finished()
 
     def on_agent_changed(self, name: str) -> None:
-        """Handle selection changes in the agent combo box."""
+        """Handle selection changes in the agent list."""
         self.agent_manager.set_active_agent(name)
         self.settings["selected_agent"] = name
         save_settings(self.settings)
         self.status_bar.showMessage(f"Active Agent: {name}")
+        self.update_agent_description()
 
     def open_settings_dialog(self) -> None:
         dialog = SettingsDialog(self.settings, self)
         dialog.exec()
         self.status_bar.showMessage("Settings updated")
+
+    def update_agent_description(self) -> None:
+        """Update the description panel with the active agent's details."""
+        agent = self.agent_manager.active_agent
+        if agent:
+            self.agent_desc.setPlainText(agent.get("description", ""))
+        else:
+            self.agent_desc.clear()

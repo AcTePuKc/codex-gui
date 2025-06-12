@@ -1,27 +1,22 @@
 from __future__ import annotations
 
 import sys
-from PySide6.QtWidgets import QApplication, QLabel, QWidget, QVBoxLayout
+from PySide6.QtWidgets import QApplication
 
-from .backend.agent_loader import load_agents
 from .backend.settings_manager import load_settings
+from .backend.agent_manager import AgentManager
+from .ui import MainWindow
 
 
 def main() -> None:
     """Entry point for the Hybrid PySide6 GUI."""
     app = QApplication(sys.argv)
 
-    agents = load_agents()
-    settings = load_settings()
+    _ = load_settings()  # Load user settings for future use
+    agent_manager = AgentManager()
 
-    window = QWidget()
-    window.setWindowTitle("Codex-GUI")
-    layout = QVBoxLayout(window)
-    info = QLabel(
-        f"Loaded {len(agents)} agents. Selected: {settings.get('selected_agent')}"
-    )
-    layout.addWidget(info)
-    window.resize(400, 200)
+    window = MainWindow(agent_manager)
+    window.resize(800, 600)
     window.show()
 
     sys.exit(app.exec())

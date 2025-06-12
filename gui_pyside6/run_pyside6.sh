@@ -3,7 +3,13 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REQ_FILE="$SCRIPT_DIR/requirements.uv.in"
+SENTINEL_FILE="$SCRIPT_DIR/.deps_installed"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+INSTALL_DEPS=1
+if [ -f "$SENTINEL_FILE" ] && [ "$SENTINEL_FILE" -nt "$REQ_FILE" ]; then
+    INSTALL_DEPS=0
+fi
 
 # Verify Node.js availability
 if ! command -v node >/dev/null 2>&1; then
@@ -39,7 +45,12 @@ else
     fi
     "$VENV_DIR/bin/python3" -m ensurepip --upgrade >/dev/null
     "$VENV_DIR/bin/pip" install -U pip uv >/dev/null
-    VIRTUAL_ENV="$VENV_DIR" "$VENV_DIR/bin/uv" pip install -r "$REQ_FILE"
+    if [ "$INSTALL_DEPS" -eq 1 ]; then
+        VIRTUAL_ENV="$VENV_DIR" "$VENV_DIR/bin/uv" pip install -r "$REQ_FILE"
+        touch "$SENTINEL_FILE"
+    else
+        echo "Requirements unchanged; skipping installation."
+    fi
     PYTHON_CMD="$VENV_DIR/bin/python3"
 fi
 

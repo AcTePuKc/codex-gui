@@ -10,14 +10,22 @@ SETTINGS_PATH = (
 DEFAULT_SETTINGS = {
     "temperature": 0.5,
     "max_tokens": 1024,
-    "selected_agent": "Python Expert"
+    "selected_agent": "Python Expert",
+    # Optional path to the Codex CLI executable. If empty, the adapter will
+    # search the system PATH or use the bundled Node.js script.
+    "cli_path": ""
 }
 
 def load_settings() -> dict:
-    if not SETTINGS_PATH.exists():
-        return DEFAULT_SETTINGS.copy()
-    with SETTINGS_PATH.open("r", encoding="utf-8") as f:
-        return json.load(f)
+    settings = DEFAULT_SETTINGS.copy()
+    if SETTINGS_PATH.exists():
+        with SETTINGS_PATH.open("r", encoding="utf-8") as f:
+            try:
+                loaded = json.load(f)
+            except json.JSONDecodeError:
+                loaded = {}
+        settings.update(loaded)
+    return settings
 
 def save_settings(settings: dict) -> None:
     SETTINGS_PATH.parent.mkdir(parents=True, exist_ok=True)

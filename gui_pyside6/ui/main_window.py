@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 
-from PySide6.QtCore import QThread, Signal, Qt
+from PySide6.QtCore import QThread, Signal, Qt, QStringListModel
 from PySide6.QtGui import (
     QFontDatabase,
     QAction,
     QTextCharFormat,
     QColor,
     QTextCursor,
+    QKeySequence,
+    QShortcut,
 )
 from PySide6.QtWidgets import (
     QHBoxLayout,
@@ -18,6 +20,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
     QPlainTextEdit,
+    QCompleter,
     QMessageBox,
     QSplitter,
     QListWidget,
@@ -36,6 +39,7 @@ from ..backend.agent_manager import AgentManager
 from ..plugins.loader import load_plugins
 from ..utils.highlighter import PythonHighlighter
 from ..utils.file_scanner import find_source_files
+from ..utils.project_paths import get_common_paths
 from pathlib import Path
 
 
@@ -67,6 +71,25 @@ class ImageDropList(QListWidget):
             event.acceptProposedAction()
         else:
             super().dropEvent(event)
+
+
+class PromptEdit(QPlainTextEdit):
+    """Text edit that can trigger path completion."""
+
+    pathCompletionRequested = Signal()
+
+    def keyPressEvent(self, event) -> None:  # type: ignore[override]
+        if (
+            event.key() == Qt.Key_Space
+            and event.modifiers() == Qt.ControlModifier
+        ):
+            self.pathCompletionRequested.emit()
+            return
+        super().keyPressEvent(event)
+        cursor = self.textCursor()
+        text = self.toPlainText()[: cursor.position()]
+        if text.endswith("--file") or text.endswith("--file "):
+            self.pathCompletionRequested.emit()
 
 
 class CodexWorker(QThread):
@@ -315,9 +338,18 @@ class MainWindow(QMainWindow):
 
         inner_splitter = QSplitter(Qt.Vertical)
 
-        self.prompt_edit = QPlainTextEdit()
+        self.prompt_edit = PromptEdit()
         self.prompt_edit.setPlaceholderText("Enter your prompt here...")
         inner_splitter.addWidget(self.prompt_edit)
+
+        self.path_completer = QCompleter()
+        self.path_completer.setModel(QStringListModel())
+        self.path_completer.setWidget(self.prompt_edit)
+        self.path_completer.activated.connect(self.insert_completion)
+        self.prompt_edit.pathCompletionRequested.connect(self.show_path_completion)
+        QShortcut(QKeySequence(Qt.CTRL | Qt.Key_Space), self.prompt_edit).activated.connect(
+            self.show_path_completion
+        )
 
         self.output_view = QPlainTextEdit()
         self.output_view.setReadOnly(True)
@@ -527,6 +559,20 @@ class MainWindow(QMainWindow):
     def suggest_source_files(self) -> list[str]:
         """Return a list of source files discovered in the current directory."""
         return find_source_files(Path.cwd(), max_files=20)
+
+    def show_path_completion(self) -> None:
+        """Display a popup with common file paths for completion."""
+        paths = get_common_paths(Path.cwd(), max_files=100)
+        model = self.path_completer.model()
+        if isinstance(model, QStringListModel):
+            model.setStringList(paths)
+        cursor_rect = self.prompt_edit.cursorRect()
+        self.path_completer.complete(cursor_rect)
+
+    def insert_completion(self, text: str) -> None:
+        cursor = self.prompt_edit.textCursor()
+        cursor.insertText(text)
+        self.prompt_edit.setTextCursor(cursor)
 
     def update_agent_description(self) -> None:
         """Update the description panel with the active agent's details."""

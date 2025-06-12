@@ -1,5 +1,6 @@
 """UI components for Codex-GUI."""
 
 from .main_window import MainWindow
+from .settings_dialog import SettingsDialog
 
-__all__ = ["MainWindow"]
+__all__ = ["MainWindow", "SettingsDialog"]

@@ -24,6 +24,7 @@ This project reimagines the Codex CLI as a desktop application, offering:
 - Runtime settings for temperature, model, provider, penalties and more passed as CLI flags
 - Remembers the last selected agent across restarts
 - Optional verbose mode prints the exact CLI command before execution
+- Quiet mode and full context options mirror the CLI `--quiet` and `--full-context` flags
 - Additional options for provider, model, top-p, frequency and presence penalties,
   approval mode with auto-edit/full-auto toggles, reasoning effort and flex mode
 

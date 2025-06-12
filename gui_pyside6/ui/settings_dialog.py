@@ -97,6 +97,14 @@ class SettingsDialog(QDialog):
         self.flex_check.setChecked(bool(settings.get("flex_mode", False)))
         layout.addWidget(self.flex_check)
 
+        self.quiet_check = QCheckBox("Quiet Mode")
+        self.quiet_check.setChecked(bool(settings.get("quiet", False)))
+        layout.addWidget(self.quiet_check)
+
+        self.full_context_check = QCheckBox("Full Context")
+        self.full_context_check.setChecked(bool(settings.get("full_context", False)))
+        layout.addWidget(self.full_context_check)
+
         layout.addWidget(QLabel("Codex CLI Path:"))
         cli_row = QWidget()
         cli_layout = QHBoxLayout(cli_row)
@@ -131,6 +139,8 @@ class SettingsDialog(QDialog):
         self.settings["full_auto"] = self.full_auto_check.isChecked()
         self.settings["reasoning"] = self.reason_combo.currentText()
         self.settings["flex_mode"] = self.flex_check.isChecked()
+        self.settings["quiet"] = self.quiet_check.isChecked()
+        self.settings["full_context"] = self.full_context_check.isChecked()
         self.settings["cli_path"] = self.cli_edit.text().strip()
         self.settings["verbose"] = self.verbose_check.isChecked()
         save_settings(self.settings)

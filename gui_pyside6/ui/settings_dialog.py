@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
     QLabel,
     QDoubleSpinBox,
     QSpinBox,
+    QComboBox,
     QLineEdit,
     QPushButton,
     QFileDialog,
@@ -35,11 +36,66 @@ class SettingsDialog(QDialog):
         self.temp_spin.setValue(float(settings.get("temperature", 0.5)))
         layout.addWidget(self.temp_spin)
 
+        layout.addWidget(QLabel("Top-p:"))
+        self.top_p_spin = QDoubleSpinBox()
+        self.top_p_spin.setRange(0.0, 1.0)
+        self.top_p_spin.setSingleStep(0.1)
+        self.top_p_spin.setValue(float(settings.get("top_p", 1.0)))
+        layout.addWidget(self.top_p_spin)
+
+        layout.addWidget(QLabel("Frequency Penalty:"))
+        self.freq_spin = QDoubleSpinBox()
+        self.freq_spin.setRange(-2.0, 2.0)
+        self.freq_spin.setSingleStep(0.1)
+        self.freq_spin.setValue(float(settings.get("frequency_penalty", 0.0)))
+        layout.addWidget(self.freq_spin)
+
+        layout.addWidget(QLabel("Presence Penalty:"))
+        self.presence_spin = QDoubleSpinBox()
+        self.presence_spin.setRange(-2.0, 2.0)
+        self.presence_spin.setSingleStep(0.1)
+        self.presence_spin.setValue(float(settings.get("presence_penalty", 0.0)))
+        layout.addWidget(self.presence_spin)
+
         layout.addWidget(QLabel("Max Tokens:"))
         self.max_spin = QSpinBox()
         self.max_spin.setRange(1, 4096)
         self.max_spin.setValue(int(settings.get("max_tokens", 1024)))
         layout.addWidget(self.max_spin)
+
+        layout.addWidget(QLabel("Provider:"))
+        self.provider_edit = QLineEdit()
+        self.provider_edit.setText(settings.get("provider", "openai"))
+        layout.addWidget(self.provider_edit)
+
+        layout.addWidget(QLabel("Model:"))
+        self.model_edit = QLineEdit()
+        self.model_edit.setText(settings.get("model", "codex-mini-latest"))
+        layout.addWidget(self.model_edit)
+
+        layout.addWidget(QLabel("Approval Mode:"))
+        self.approval_combo = QComboBox()
+        self.approval_combo.addItems(["suggest", "auto-edit", "full-auto"])
+        self.approval_combo.setCurrentText(settings.get("approval_mode", "suggest"))
+        layout.addWidget(self.approval_combo)
+
+        self.auto_edit_check = QCheckBox("Auto Edit")
+        self.auto_edit_check.setChecked(bool(settings.get("auto_edit", False)))
+        layout.addWidget(self.auto_edit_check)
+
+        self.full_auto_check = QCheckBox("Full Auto")
+        self.full_auto_check.setChecked(bool(settings.get("full_auto", False)))
+        layout.addWidget(self.full_auto_check)
+
+        layout.addWidget(QLabel("Reasoning Effort:"))
+        self.reason_combo = QComboBox()
+        self.reason_combo.addItems(["low", "medium", "high"])
+        self.reason_combo.setCurrentText(settings.get("reasoning", "high"))
+        layout.addWidget(self.reason_combo)
+
+        self.flex_check = QCheckBox("Flex Mode")
+        self.flex_check.setChecked(bool(settings.get("flex_mode", False)))
+        layout.addWidget(self.flex_check)
 
         layout.addWidget(QLabel("Codex CLI Path:"))
         cli_row = QWidget()
@@ -64,7 +120,17 @@ class SettingsDialog(QDialog):
 
     def accept(self) -> None:  # type: ignore[override]
         self.settings["temperature"] = float(self.temp_spin.value())
+        self.settings["top_p"] = float(self.top_p_spin.value())
+        self.settings["frequency_penalty"] = float(self.freq_spin.value())
+        self.settings["presence_penalty"] = float(self.presence_spin.value())
         self.settings["max_tokens"] = int(self.max_spin.value())
+        self.settings["provider"] = self.provider_edit.text().strip()
+        self.settings["model"] = self.model_edit.text().strip()
+        self.settings["approval_mode"] = self.approval_combo.currentText()
+        self.settings["auto_edit"] = self.auto_edit_check.isChecked()
+        self.settings["full_auto"] = self.full_auto_check.isChecked()
+        self.settings["reasoning"] = self.reason_combo.currentText()
+        self.settings["flex_mode"] = self.flex_check.isChecked()
         self.settings["cli_path"] = self.cli_edit.text().strip()
         self.settings["verbose"] = self.verbose_check.isChecked()
         save_settings(self.settings)

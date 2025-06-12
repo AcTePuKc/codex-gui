@@ -110,6 +110,15 @@ def build_command(prompt: str, agent: dict, settings: dict | None = None) -> lis
         "frequency_penalty": "--frequency-penalty",
         "presence_penalty": "--presence-penalty",
         "model": "--model",
+        "provider": "--provider",
+        "approval_mode": "--approval-mode",
+        "reasoning": "--reasoning",
+    }
+
+    bool_flags = {
+        "auto_edit": "--auto-edit",
+        "full_auto": "--full-auto",
+        "flex_mode": "--flex-mode",
     }
 
     for key, flag in flag_map.items():
@@ -117,6 +126,11 @@ def build_command(prompt: str, agent: dict, settings: dict | None = None) -> lis
             add_flag(flag, agent[key])
         elif key in settings:
             add_flag(flag, settings[key])
+
+    for key, flag in bool_flags.items():
+        value = agent.get(key, settings.get(key))
+        if value:
+            cmd.append(flag)
 
     cmd.append(prompt)
     return cmd

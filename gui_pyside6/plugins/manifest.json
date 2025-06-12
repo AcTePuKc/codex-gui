@@ -9,6 +9,11 @@
       "name": "Agent Logger",
       "entry": "plugins/agent_logger.py",
       "enabled": false
+    },
+    {
+      "name": "TTS Player",
+      "entry": "plugins/tts_player.py",
+      "enabled": false
     }
   ]
 }

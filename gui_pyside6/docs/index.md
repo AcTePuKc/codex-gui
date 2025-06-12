@@ -201,12 +201,17 @@ Current examples:
 - [x] Basic GUI shell (prompt, agent, response)
 - [x] Load/save agents
 - [x] Run CLI subprocess and parse output
-- [ ] Add file-aware completions
-- [ ] Build debug panel (logs, errors, console)
+- [x] Add file-aware completions
+- [x] Build debug panel (logs, errors, console)
 - [ ] Execution in `uv` sandbox
-- [ ] Plugin manager
+- [x] Plugin manager
 - [x] Drag-and-drop file attachments
 - [x] Quiet & full-context CLI flags
+- [x] Tools panel for running generated scripts
+- [x] Session history browser and resume support
+- [x] Editable agents via dialog
+- [x] Provider/model selection and CLI path settings
+- [x] API key login and credit redemption helpers
 
 ---
 

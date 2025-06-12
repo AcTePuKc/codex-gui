@@ -1,0 +1,12 @@
+# GUI framework
+PySide6
+
+# Codex CLI subprocess interaction
+psutil
+python-dotenv
+
+# Optional logging or diagnostics
+rich
+aiofiles
+httpx
+openai

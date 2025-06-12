@@ -1,0 +1,14 @@
+{
+  "plugins": [
+    {
+      "name": "Syntax Formatter",
+      "entry": "plugins/syntax_formatter.py",
+      "enabled": true
+    },
+    {
+      "name": "Agent Logger",
+      "entry": "plugins/agent_logger.py",
+      "enabled": false
+    }
+  ]
+}

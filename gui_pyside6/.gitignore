@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Env
+.venv/
+.env
+.uv/
+
+# Tools
+/tools/*.py
+/tools/*.log
+/tools/*.out
+
+# PyInstaller / build
+build/
+dist/
+*.spec
+
+# VSCode
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,11 +1,11 @@
-## 🤖 `AGENTS.md` – Agent Configuration & System Logic
+## `AGENTS.md` - Agent Configuration & System Logic
 
 ```markdown
 # Agents in Codex-GUI
 
 This document defines how **agents** are structured, configured, and used within the GUI.
 
-## 💡 What is an Agent?
+## What is an Agent?
 
 An *agent* is a combination of:
 - **System prompt**
@@ -15,7 +15,7 @@ An *agent* is a combination of:
 
 Agents simulate various personalities or coding roles (e.g. "Python Expert", "Refactor Bot", "Bug Hunter").
 
-## 🧠 Agent Preset Format
+## Agent Preset Format
 
 Presets are stored as `.json` files (or `.toml` in future), located in:
 
@@ -37,7 +37,7 @@ Example:
 }
 ````
 
-## 🧩 Tooling Support
+## Tooling Support
 
 Each agent can optionally access a `tools/` folder in the project root.
 
@@ -53,15 +53,15 @@ Example workflow:
 * Agent generates file into `tools/json_validator.py`
 * Codex GUI allows user to **preview, edit, or run** the file with optional logging
 
-> ✅ File operations will be visible to the user. GUI never executes arbitrary code unless explicitly requested.
+> File operations will be visible to the user. GUI never executes arbitrary code unless explicitly requested.
 
-## ⚙️ Execution Policy
+## Execution Policy
 
 * Scripts are run using `uv` environments if available
 * Optional support for Miniconda/conda environments
 * CLI backend ensures sandboxing and terminal log output
 
-## 🔄 Agent Switching
+## Agent Switching
 
 Users can:
 
@@ -72,7 +72,7 @@ Users can:
 
 ---
 
-## 📌 Planned Agent Types
+## Planned Agent Types
 
 | Agent Name      | Description                                 |
 | --------------- | ------------------------------------------- |

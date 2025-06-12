@@ -4,16 +4,16 @@ A full-featured **PySide6-based GUI** frontend for [OpenAI's Codex CLI](https://
 
 This project reimagines the Codex CLI as a desktop application, offering:
 
-- 🖥️ User-friendly prompt editor
-- 🧠 Multi-agent support with visual memory
-- 🧩 Plugin-ready architecture
-- 📁 File-aware completions
-- 💬 Conversation context tracking
-- 🔌 Toggleable features from CLI (e.g., `--no-browser`, `--dry-run`)
+- User-friendly prompt editor
+- Multi-agent support with visual memory
+- Plugin-ready architecture
+- File-aware completions
+- Conversation context tracking
+- Toggleable features from CLI (e.g., `--no-browser`, `--dry-run`)
 
-> ⚠️ This is an experimental fork developed at [https://github.com/AcTePuKc/codex-gui](https://github.com/AcTePuKc/codex-gui)
+> **Note**: This is an experimental fork developed at [https://github.com/AcTePuKc/codex-gui](https://github.com/AcTePuKc/codex-gui)
 
-## 🚀 Features (Planned)
+## Features (Planned)
 
 - Full CLI parity with real-time feedback
 - Drag-and-drop file support
@@ -37,7 +37,7 @@ self.full_context_check = QCheckBox("Full Context")
 - Additional options for provider, model, top-p, frequency and presence penalties,
   approval mode with auto-edit/full-auto toggles, reasoning effort and flex mode
 
-## 📝 Prerequisites
+## Prerequisites
 
 - Python 3.9 or newer
 - A built copy of **Codex CLI**. From the `codex-cli` directory run:
@@ -50,7 +50,7 @@ If the command fails, install dependencies and build the CLI using `pnpm install
 
 Codex CLI is a Node/TypeScript project that must be built once with `pnpm build` before it can be used. The GUI relies on this built CLI.
 
-## 📦 Installation
+## Installation
 
 ```bash
 git clone https://github.com/AcTePuKc/codex-gui
@@ -65,52 +65,66 @@ creates `~/.hybrid_tts/venv` (Windows: `%USERPROFILE%\.hybrid_tts\venv`) for
 the optional text-to-speech backends, installs the requirements using `uv`, and
 then launches the GUI in a separate terminal window.
 
+## First-Time Setup
+
+1. Run `./run_pyside6.sh` (Windows: `run_pyside6.bat`).
+2. The script installs **Codex CLI** automatically with `npm install -g @openai/codex` if it is not already present.
+3. On first launch the GUI prompts for your OpenAI API key unless `OPENAI_API_KEY` is set.
+
+To set the key manually in your shell:
+
+```bash
+export OPENAI_API_KEY="sk-your-key"
+# Windows
+set OPENAI_API_KEY=sk-your-key
+```
+
 ---
 
 ## Project Structure
 
-- `codex/` – The CLI backend, written in TypeScript. Run `pnpm run build` only when making CLI changes.
-- `gui_pyside6/` – A full-featured Python GUI using PySide6.
+- `codex/` - The CLI backend, written in TypeScript. Run `pnpm run build` only when making CLI changes.
+- `gui_pyside6/` - A full-featured Python GUI using PySide6.
 
 These components are developed separately but communicate via a common API/backend.
-- `gui_pyside6/main.py` – The main entry point for the GUI application.
-- `gui_pyside6/ui/` – Contains the UI components built with PySide6.
+- `gui_pyside6/main.py` - The main entry point for the GUI application.
+- `gui_pyside6/ui/` - Contains the UI components built with PySide6.
 ---
 
-## 🔧 Project Structure (WIP)
+## Project Structure (WIP)
 
 ```
 codex-gui/
-├── gui_pyside6/
-│   ├── main.py
-│   ├── run_pyside6.sh
-│   ├── run_pyside6.bat
-│   ├── ui/                   # UI components
-│   ├── backend/              # Logic & CLI adapters
-│   ├── utils/                # Helper functions
-├── AGENTS.md
-├── README.md
-├── CONTRIBUTING.md
-├── docs/
-│   └── index.md
+|-- gui_pyside6/
+|   |-- main.py
+|   |-- run_pyside6.sh
+|   |-- run_pyside6.bat
+|   |-- ui/                   # UI components
+|   |-- backend/              # Logic & CLI adapters
+|   |-- utils/                # Helper functions
+|-- AGENTS.md
+|-- README.md
+|-- CONTRIBUTING.md
+|-- docs/
+|   `-- index.md
 ```
 
 ---
 
-## 🗺️ IDE Layout
+## IDE Layout
 
 The window is split into three panels using a horizontal splitter:
 
-- **Left panel** – shows the list of agents and their description.
-- **Center panel** – contains the prompt editor and the streaming output view.
-- **Right panel** – displays the conversation history.
+- **Left panel** - shows the list of agents and their description.
+- **Center panel** - contains the prompt editor and the streaming output view.
+- **Right panel** - displays the conversation history.
 
 A toolbar at the top mirrors the **Run** and **Stop** actions found below the
 editor. The status bar reports which agent is active and session progress.
 If the Codex CLI encounters an error, its stderr output will appear in the output panel.
 Detailed logs from Codex and tool executions are also sent to the dockable **Debug Console** accessible from the **View** menu.
 
-## 📚 Docs
+## Docs
 
 For agent presets, architecture decisions, and developer info, see:
 
@@ -118,7 +132,7 @@ For agent presets, architecture decisions, and developer info, see:
 * [CONTRIBUTING.md](./CONTRIBUTING.md)
 * [docs/index.md](./docs/index.md)
 
-## 🔌 Plugins & Backends
+## Plugins & Backends
 
 Plugins listed in `plugins/manifest.json` are loaded at startup using `load_plugins`.
 Place your plugin module inside `gui_pyside6/plugins/` and enable it in the manifest to extend the UI.
@@ -126,13 +140,13 @@ Each module simply exposes a `register(window)` function that receives the main 
 
 Example plugins included:
 
-- **Syntax Formatter** – adds a *Format* button that runs the Black formatter on the prompt editor.
-- **Agent Logger** – records prompts and responses to `agent_log.txt` when enabled.
-- **TTS Player** – speaks the current prompt using gTTS (disabled by default).
+- **Syntax Formatter** - adds a *Format* button that runs the Black formatter on the prompt editor.
+- **Agent Logger** - records prompts and responses to `agent_log.txt` when enabled.
+- **TTS Player** - speaks the current prompt using gTTS (disabled by default).
 
 Some plugins rely on optional TTS backends. These dependencies are installed on demand via `ensure_backend_installed()` which detects your active virtual environment or falls back to `~/.hybrid_tts/venv`.
 
-## ❓ FAQ
+## FAQ
 
 ### Why was `~/.hybrid_tts/venv` created?
 
@@ -141,7 +155,7 @@ initializes one at `~/.hybrid_tts/venv` (or `%USERPROFILE%\.hybrid_tts\venv` on
 Windows) for the optional text-to-speech backends. If you don't plan to use any
 TTS features, you can safely remove this directory.
 
-## 🙏 Credits
+## Credits
 
 Based on [OpenAI Codex](https://github.com/openai/codex)
 

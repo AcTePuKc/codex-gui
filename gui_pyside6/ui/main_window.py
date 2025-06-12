@@ -118,6 +118,35 @@ class CodexWorker(QThread):
             self.finished.emit()
 
 
+class CodexCommandWorker(QThread):
+    """Worker thread for simple Codex CLI commands."""
+
+    line_received = Signal(str)
+    log_line = Signal(str, str)
+    finished = Signal()
+
+    def __init__(self, run_fn) -> None:
+        super().__init__()
+        self.run_fn = run_fn
+
+    def run(self) -> None:  # type: ignore[override]
+        try:
+            for line in self.run_fn():
+                self.line_received.emit(line)
+                self.log_line.emit("info", line)
+        except codex_adapter.CodexError as exc:
+            for err_line in exc.stderr.strip().splitlines():
+                self.line_received.emit(f"Error: {err_line}")
+                self.log_line.emit("error", err_line)
+            self.line_received.emit(f"Error: {exc}")
+            self.log_line.emit("error", str(exc))
+        except Exception as exc:  # pylint: disable=broad-except
+            self.line_received.emit(f"Error: {exc}")
+            self.log_line.emit("error", str(exc))
+        finally:
+            self.finished.emit()
+
+
 class MainWindow(QMainWindow):
     """Primary application window."""
 
@@ -125,7 +154,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.agent_manager = agent_manager
         self.settings = settings
-        self.worker: CodexWorker | None = None
+        self.worker: QThread | None = None
 
         self.setWindowTitle("Codex-GUI")
 
@@ -170,6 +199,14 @@ class MainWindow(QMainWindow):
         about_action.triggered.connect(
             lambda: QMessageBox.about(self, "About Codex-GUI", "Codex-GUI")
         )
+
+        self.login_action = QAction("Login", self)
+        self.login_action.triggered.connect(self.run_login)
+        help_menu.addAction(self.login_action)
+
+        self.free_action = QAction("Redeem Free Credits", self)
+        self.free_action.triggered.connect(self.redeem_free_credits)
+        help_menu.addAction(self.free_action)
 
         self.debug_console = DebugConsole(self)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.debug_console)
@@ -559,3 +596,47 @@ class MainWindow(QMainWindow):
         )
         if filename:
             self.view_rollout(filename)
+
+    # ------------------------------------------------------------------
+    # CLI helper commands
+    # ------------------------------------------------------------------
+
+    def run_login(self) -> None:
+        self._run_cli_command(lambda: codex_adapter.login(self.settings), "Login finished")
+
+    def redeem_free_credits(self) -> None:
+        self._run_cli_command(lambda: codex_adapter.redeem_free_credits(self.settings), "Credit redemption finished")
+
+    def _run_cli_command(self, fn, done_msg: str) -> None:
+        if self.worker and self.worker.isRunning():
+            return
+        try:
+            codex_adapter.ensure_cli_available(self.settings)
+        except FileNotFoundError as exc:
+            QMessageBox.warning(self, "Codex CLI Missing", str(exc))
+            self.status_bar.showMessage(str(exc))
+            self.debug_console.append_error(str(exc))
+            return
+        self.output_view.clear()
+        self.worker = CodexCommandWorker(fn)
+        self.worker.line_received.connect(self.append_output)
+        self.worker.log_line.connect(self.handle_log_line)
+        self.worker.finished.connect(lambda: self._command_finished(done_msg))
+        self.run_btn.setEnabled(False)
+        self.run_action.setEnabled(False)
+        self.stop_btn.setEnabled(False)
+        self.stop_action.setEnabled(False)
+        self.login_action.setEnabled(False)
+        self.free_action.setEnabled(False)
+        self.status_bar.showMessage("Running command...")
+        self.worker.start()
+
+    def _command_finished(self, msg: str) -> None:
+        self.run_btn.setEnabled(True)
+        self.run_action.setEnabled(True)
+        self.stop_btn.setEnabled(False)
+        self.stop_action.setEnabled(False)
+        self.login_action.setEnabled(True)
+        self.free_action.setEnabled(True)
+        self.status_bar.showMessage(msg)
+        self.debug_console.append_info(msg)

@@ -130,6 +130,42 @@ class SettingsDialog(QDialog):
         self.verbose_check.setChecked(bool(settings.get("verbose", False)))
         layout.addWidget(self.verbose_check)
 
+        self.notify_check = QCheckBox("Notify")
+        self.notify_check.setChecked(bool(settings.get("notify", False)))
+        layout.addWidget(self.notify_check)
+
+        self.no_project_doc_check = QCheckBox("No Project Doc")
+        self.no_project_doc_check.setChecked(bool(settings.get("no_project_doc", False)))
+        layout.addWidget(self.no_project_doc_check)
+
+        self.disable_storage_check = QCheckBox("Disable Response Storage")
+        self.disable_storage_check.setChecked(bool(settings.get("disable_response_storage", False)))
+        layout.addWidget(self.disable_storage_check)
+
+        layout.addWidget(QLabel("Project Doc:"))
+        project_doc_row = QWidget()
+        project_doc_layout = QHBoxLayout(project_doc_row)
+        project_doc_layout.setContentsMargins(0, 0, 0, 0)
+        self.project_doc_edit = QLineEdit()
+        self.project_doc_edit.setText(settings.get("project_doc", ""))
+        project_doc_btn = QPushButton("Browse")
+        project_doc_btn.clicked.connect(self.browse_project_doc)
+        project_doc_layout.addWidget(self.project_doc_edit)
+        project_doc_layout.addWidget(project_doc_btn)
+        layout.addWidget(project_doc_row)
+
+        layout.addWidget(QLabel("Writable Root:"))
+        writable_row = QWidget()
+        writable_layout = QHBoxLayout(writable_row)
+        writable_layout.setContentsMargins(0, 0, 0, 0)
+        self.writable_root_edit = QLineEdit()
+        self.writable_root_edit.setText(settings.get("writable_root", ""))
+        writable_btn = QPushButton("Browse")
+        writable_btn.clicked.connect(self.browse_writable_root)
+        writable_layout.addWidget(self.writable_root_edit)
+        writable_layout.addWidget(writable_btn)
+        layout.addWidget(writable_row)
+
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
@@ -172,6 +208,11 @@ class SettingsDialog(QDialog):
         self.settings["full_context"] = self.full_context_check.isChecked()
         self.settings["cli_path"] = self.cli_edit.text().strip()
         self.settings["verbose"] = self.verbose_check.isChecked()
+        self.settings["notify"] = self.notify_check.isChecked()
+        self.settings["no_project_doc"] = self.no_project_doc_check.isChecked()
+        self.settings["disable_response_storage"] = self.disable_storage_check.isChecked()
+        self.settings["project_doc"] = self.project_doc_edit.text().strip()
+        self.settings["writable_root"] = self.writable_root_edit.text().strip()
         save_settings(self.settings)
         super().accept()
 
@@ -184,3 +225,23 @@ class SettingsDialog(QDialog):
         )
         if filename:
             self.cli_edit.setText(filename)
+
+    def browse_project_doc(self) -> None:
+        """Prompt the user to select an additional project doc file."""
+        filename, _ = QFileDialog.getOpenFileName(
+            self,
+            "Select Project Doc",
+            str(self.project_doc_edit.text() or ""),
+        )
+        if filename:
+            self.project_doc_edit.setText(filename)
+
+    def browse_writable_root(self) -> None:
+        """Prompt the user to select the writable root directory."""
+        directory = QFileDialog.getExistingDirectory(
+            self,
+            "Select Writable Root",
+            str(self.writable_root_edit.text() or ""),
+        )
+        if directory:
+            self.writable_root_edit.setText(directory)

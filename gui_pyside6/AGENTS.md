@@ -84,4 +84,4 @@ Users can:
 
 ---
 
-For backend integration, see `backend/agent_manager.py` (WIP).
+For backend integration, see `backend/agent_manager.py`.

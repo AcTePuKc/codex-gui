@@ -168,6 +168,27 @@ When a Codex session is launched these selected files are passed to the CLI via
 
 ---
 
+## Login & Free Credits
+
+The **Help** menu provides two account actions:
+
+- **Login** – runs `codex --login` and opens your browser so you can authenticate
+  with your OpenAI account.
+- **Redeem Free Credits** – runs `codex --free` to claim any promotional credits
+  tied to your account.
+
+Command output appears in the main panel and is also logged in the Debug Console.
+
+---
+
+## Debug Console
+
+The Debug Console is a dockable window that shows stdout and stderr from Codex
+and tools. Toggle it from **View → Debug Console**. Use the **Info** and
+**Errors** checkboxes to filter messages and click **Clear** to wipe the log.
+
+---
+
 ## Planned Plugin/Extension Support
 
 Planned plugin architecture will allow:
@@ -192,7 +213,13 @@ Current examples:
 - **Agents**: Drop a JSON file into `resources/agents/`. New files are loaded on startup.
 - **Plugins**: Place your module inside `gui_pyside6/plugins/` and list it in `plugins/manifest.json`. Only entries with `"enabled": true` are imported.
 - **Interface**: Each plugin exports a `register(window)` function which receives the main window instance so you can add widgets or hook signals.
-- Some plugins require additional packages. The helper `ensure_backend_installed()` first checks if you are running inside a virtual environment. If not, it creates a user-scoped environment at `~/.hybrid_tts/venv` (Windows: `%USERPROFILE%\.hybrid_tts\venv`) and installs the dependencies there. Activate your own virtual environment before launching the app if you want packages to be installed elsewhere.
+  - Some plugins require additional packages. The helper `ensure_backend_installed()` first checks if you are running inside a virtual environment. If not, it creates a user-scoped environment at `~/.hybrid_tts/venv` (Windows: `%USERPROFILE%\.hybrid_tts\venv`) and installs the dependencies there. Activate your own virtual environment before launching the app if you want packages to be installed elsewhere.
+
+---
+
+## Plugin Manager
+
+Open **Plugins → Plugin Manager** to enable or disable optional plugins listed in `plugins/manifest.json`. Each entry appears with a checkbox. Click **Save** to persist your choices and reload the plugins immediately.
 
 ---
 

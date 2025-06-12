@@ -92,6 +92,7 @@ def build_command(
     settings: dict | None = None,
     view: str | None = None,
     images: list[str] | None = None,
+    files: list[str] | None = None,
 ) -> list[str]:
     """Construct the Codex CLI command from agent and settings."""
     settings = settings or {}
@@ -147,6 +148,10 @@ def build_command(
         for img in images:
             cmd.extend(["--image", img])
 
+    if files:
+        for path in files:
+            cmd.extend(["--file", path])
+
     cmd.append(prompt)
     return cmd
 
@@ -157,6 +162,7 @@ def start_session(
     settings: dict | None = None,
     view: str | None = None,
     images: list[str] | None = None,
+    files: list[str] | None = None,
 ) -> Iterable[str]:
     """Start a Codex CLI session with the given prompt and agent.
 
@@ -173,6 +179,8 @@ def start_session(
         Runtime settings loaded from ``settings_manager``. ``temperature`` and
         ``max_tokens`` from this dictionary will be applied as CLI flags if they
         are not already provided by ``agent``.
+    files: list[str] | None, optional
+        Paths to include via ``--file`` flags.
 
     Yields
     ------
@@ -190,7 +198,14 @@ def start_session(
     if _current_process is not None:
         raise RuntimeError("A Codex session is already running")
 
-    cmd = build_command(prompt, agent, settings, view=view, images=images)
+    cmd = build_command(
+        prompt,
+        agent,
+        settings,
+        view=view,
+        images=images,
+        files=files,
+    )
     _terminated = False
     process = subprocess.Popen(
         cmd,

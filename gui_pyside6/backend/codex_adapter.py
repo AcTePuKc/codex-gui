@@ -21,8 +21,10 @@ def start_session(prompt: str, agent: dict) -> Iterable[str]:
     prompt: str
         The user prompt to pass to the Codex CLI.
     agent: dict
-        Dictionary describing the selected agent. Currently unused but kept
-        for future CLI integration.
+        Dictionary describing the selected agent. Keys such as
+        ``temperature``, ``max_tokens``, ``top_p``, ``frequency_penalty``,
+        ``presence_penalty`` and ``model`` will be converted into their
+        respective ``--<flag>`` CLI options when launching the Codex process.
 
     Yields
     ------
@@ -40,7 +42,25 @@ def start_session(prompt: str, agent: dict) -> Iterable[str]:
     if _current_process is not None:
         raise RuntimeError("A Codex session is already running")
 
-    cmd = ["codex", prompt]
+    cmd = ["codex"]
+
+    # Map agent dictionary keys to Codex CLI flags
+    flag_map = {
+        "temperature": "--temperature",
+        "default_temperature": "--temperature",
+        "max_tokens": "--max-tokens",
+        "top_p": "--top-p",
+        "frequency_penalty": "--frequency-penalty",
+        "presence_penalty": "--presence-penalty",
+        "model": "--model",
+    }
+
+    for key, flag in flag_map.items():
+        if key in agent:
+            cmd.extend([flag, str(agent[key])])
+
+    # Append the user prompt last
+    cmd.append(prompt)
     _terminated = False
     process = subprocess.Popen(
         cmd,

@@ -145,12 +145,12 @@ See [`AGENTS.md`](../AGENTS.md) for structure and editing instructions.
 
 Codex-generated scripts are saved to the `/tools/` folder.
 
-When enabled, users can:
-- Preview and edit scripts
-- Execute scripts inside a `uv` or `conda` environment
-- View stdout/stderr from a log panel
+Use the **Tools** button in the main window to open a panel that lists these scripts.
+Select a file and click **Run** to execute it. Standard output and errors appear in
+the panel's log view. Optionally choose a backend name from the drop-down before
+running to trigger `ensure_backend_installed()` for that backend.
 
-Security: No script is run unless the user clicks “Run Tool”.
+Security: No script is run unless the user explicitly clicks **Run**.
 
 ---
 

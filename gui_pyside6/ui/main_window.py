@@ -27,6 +27,7 @@ from PySide6.QtWidgets import (
 
 from .settings_dialog import SettingsDialog
 from .tools_panel import ToolsPanel
+from .debug_console import DebugConsole
 from ..backend.settings_manager import save_settings
 
 from ..backend import codex_adapter
@@ -70,6 +71,7 @@ class CodexWorker(QThread):
     """Worker thread to stream Codex output."""
 
     line_received = Signal(str)
+    log_line = Signal(str, str)  # level, text
     finished = Signal()
 
     def __init__(
@@ -97,12 +99,16 @@ class CodexWorker(QThread):
                 images=self.images,
             ):
                 self.line_received.emit(line)
+                self.log_line.emit("info", line)
         except codex_adapter.CodexError as exc:
             for err_line in exc.stderr.strip().splitlines():
                 self.line_received.emit(f"Error: {err_line}")
+                self.log_line.emit("error", err_line)
             self.line_received.emit(f"Error: {exc}")
+            self.log_line.emit("error", str(exc))
         except Exception as exc:  # pylint: disable=broad-except
             self.line_received.emit(f"Error: {exc}")
+            self.log_line.emit("error", str(exc))
         finally:
             self.finished.emit()
 
@@ -127,6 +133,7 @@ class MainWindow(QMainWindow):
         plugins_menu = menu_bar.addMenu("Plugins")
         help_menu = menu_bar.addMenu("Help")
         history_menu = menu_bar.addMenu("History")
+        view_menu = menu_bar.addMenu("View")
 
         self.run_action = QAction("Run", self)
         self.run_action.triggered.connect(self.start_codex)
@@ -150,6 +157,15 @@ class MainWindow(QMainWindow):
         about_action.triggered.connect(
             lambda: QMessageBox.about(self, "About Codex-GUI", "Codex-GUI")
         )
+
+        self.debug_console = DebugConsole(self)
+        self.addDockWidget(Qt.BottomDockWidgetArea, self.debug_console)
+
+        toggle_console_action = QAction("Debug Console", self)
+        toggle_console_action.setCheckable(True)
+        toggle_console_action.setChecked(True)
+        toggle_console_action.triggered.connect(self.debug_console.setVisible)
+        view_menu.addAction(toggle_console_action)
 
         clear_history_action = QAction("Clear History", self)
         clear_history_action.triggered.connect(self.clear_history)
@@ -286,6 +302,7 @@ class MainWindow(QMainWindow):
         except FileNotFoundError as exc:
             QMessageBox.warning(self, "Codex CLI Missing", str(exc))
             self.status_bar.showMessage(str(exc))
+            self.debug_console.append_error(str(exc))
             return
         prompt_text = (
             prompt if prompt is not None else self.prompt_edit.toPlainText().strip()
@@ -310,6 +327,7 @@ class MainWindow(QMainWindow):
         )
         if self.settings.get("verbose"):
             self.append_output("$ " + " ".join(cmd))
+        self.debug_console.append_info("$ " + " ".join(cmd))
         self.worker = CodexWorker(
             prompt_text,
             agent,
@@ -318,6 +336,7 @@ class MainWindow(QMainWindow):
             images=image_paths,
         )
         self.worker.line_received.connect(self.append_output)
+        self.worker.log_line.connect(self.handle_log_line)
         self.worker.finished.connect(self.session_finished)
         self.worker.start()
         self.run_btn.setEnabled(False)
@@ -345,18 +364,26 @@ class MainWindow(QMainWindow):
         self.output_view.setTextCursor(cursor)
         self.history_view.appendPlainText(text)
 
+    def handle_log_line(self, level: str, text: str) -> None:
+        if level == "error":
+            self.debug_console.append_error(text)
+        else:
+            self.debug_console.append_info(text)
+
     def session_finished(self) -> None:
         self.run_btn.setEnabled(True)
         self.stop_btn.setEnabled(False)
         self.run_action.setEnabled(True)
         self.stop_action.setEnabled(False)
         self.status_bar.showMessage("Session finished")
+        self.debug_console.append_info("Session finished")
 
     def stop_codex(self) -> None:
         codex_adapter.stop_session()
         if self.worker and self.worker.isRunning():
             self.worker.wait(1000)
         self.session_finished()
+        self.debug_console.append_info("Codex session stopped")
 
     def on_agent_changed(self, name: str) -> None:
         """Handle selection changes in the agent list."""
@@ -372,7 +399,7 @@ class MainWindow(QMainWindow):
         self.status_bar.showMessage("Settings updated")
 
     def open_tools_panel(self) -> None:
-        dialog = ToolsPanel(self)
+        dialog = ToolsPanel(self, debug_console=self.debug_console)
         dialog.exec()
 
     def open_plugin_manager(self) -> None:

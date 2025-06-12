@@ -25,6 +25,7 @@ This project reimagines the Codex CLI as a desktop application, offering:
 - Remembers the last selected agent across restarts
 - Optional verbose mode prints the exact CLI command before execution
 - Quiet mode hides progress output while Full Context sends the entire conversation. Both map to the CLI flags `--quiet` and `--full-context`
+- Dockable **Debug Console** shows stdout/stderr from Codex and tool runs
 
 Quiet and full context can be toggled from the **Settings** dialog.
 Example snippet:
@@ -90,6 +91,7 @@ The window is split into three panels using a horizontal splitter:
 A toolbar at the top mirrors the **Run** and **Stop** actions found below the
 editor. The status bar reports which agent is active and session progress.
 If the Codex CLI encounters an error, its stderr output will appear in the output panel.
+Detailed logs from Codex and tool executions are also sent to the dockable **Debug Console** accessible from the **View** menu.
 
 ## 📚 Docs
 

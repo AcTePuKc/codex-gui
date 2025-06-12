@@ -14,6 +14,9 @@ from PySide6.QtWidgets import (
     QPlainTextEdit,
 )
 
+from .settings_dialog import SettingsDialog
+from ..backend.settings_manager import save_settings
+
 from ..backend import codex_adapter
 from ..backend.agent_manager import AgentManager
 from ..plugins.loader import load_plugins
@@ -43,9 +46,10 @@ class CodexWorker(QThread):
 class MainWindow(QMainWindow):
     """Primary application window."""
 
-    def __init__(self, agent_manager: AgentManager) -> None:
+    def __init__(self, agent_manager: AgentManager, settings: dict) -> None:
         super().__init__()
         self.agent_manager = agent_manager
+        self.settings = settings
         self.worker: CodexWorker | None = None
 
         self.setWindowTitle("Codex-GUI")
@@ -61,10 +65,15 @@ class MainWindow(QMainWindow):
         top_bar.addWidget(QLabel("Agent:"))
         self.agent_combo = QComboBox()
         self.agent_combo.addItems([a.get("name", "") for a in agent_manager.agents])
+        index = self.agent_combo.findText(self.settings.get("selected_agent", ""))
+        if index >= 0:
+            self.agent_combo.setCurrentIndex(index)
         top_bar.addWidget(self.agent_combo)
+        self.agent_combo.currentTextChanged.connect(self.on_agent_changed)
 
         self.settings_btn = QPushButton("Settings")
         top_bar.addWidget(self.settings_btn)
+        self.settings_btn.clicked.connect(self.open_settings_dialog)
 
         self.prompt_edit = QPlainTextEdit()
         self.prompt_edit.setPlaceholderText("Enter your prompt here...")
@@ -117,3 +126,13 @@ class MainWindow(QMainWindow):
         if self.worker and self.worker.isRunning():
             self.worker.wait(1000)
         self.session_finished()
+
+    def on_agent_changed(self, name: str) -> None:
+        """Handle selection changes in the agent combo box."""
+        self.agent_manager.set_active_agent(name)
+        self.settings["selected_agent"] = name
+        save_settings(self.settings)
+
+    def open_settings_dialog(self) -> None:
+        dialog = SettingsDialog(self.settings, self)
+        dialog.exec()

@@ -12,10 +12,11 @@ def main() -> None:
     """Entry point for the Hybrid PySide6 GUI."""
     app = QApplication(sys.argv)
 
-    _ = load_settings()  # Load user settings for future use
+    settings = load_settings()
     agent_manager = AgentManager()
+    agent_manager.set_active_agent(settings.get("selected_agent", ""))
 
-    window = MainWindow(agent_manager)
+    window = MainWindow(agent_manager, settings)
     window.resize(800, 600)
     window.show()
 

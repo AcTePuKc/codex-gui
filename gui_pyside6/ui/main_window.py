@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
 
 from ..backend import codex_adapter
 from ..backend.agent_manager import AgentManager
+from ..plugins.loader import load_plugins
 
 
 class CodexWorker(QThread):
@@ -84,6 +85,9 @@ class MainWindow(QMainWindow):
         self.output_view = QTextEdit()
         self.output_view.setReadOnly(True)
         layout.addWidget(self.output_view)
+
+        # Load optional plugins defined in plugins/manifest.json
+        load_plugins(self)
 
     def start_codex(self) -> None:
         if self.worker and self.worker.isRunning():

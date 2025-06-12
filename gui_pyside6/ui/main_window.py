@@ -193,7 +193,7 @@ class MainWindow(QMainWindow):
         if self.worker and self.worker.isRunning():
             return
         try:
-            codex_adapter.ensure_cli_available()
+            codex_adapter.ensure_cli_available(self.settings)
         except FileNotFoundError as exc:
             QMessageBox.warning(self, "Codex CLI Missing", str(exc))
             self.status_bar.showMessage(str(exc))

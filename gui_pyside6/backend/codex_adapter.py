@@ -14,13 +14,30 @@ _current_process: subprocess.Popen[str] | None = None
 _terminated: bool = False
 
 
-def ensure_cli_available() -> None:
+def ensure_cli_available(settings: dict | None = None) -> None:
     """Verify that the Codex CLI is accessible.
 
-    This checks for either ``codex`` on ``PATH`` or the local Node.js
-    entrypoint ``codex-cli/bin/codex.js``. On failure a ``FileNotFoundError``
-    is raised with a user-friendly message.
+    The user-configured ``cli_path`` is attempted first. If that fails,
+    the system ``codex`` command and finally the bundled Node.js script are
+    checked. On failure a ``FileNotFoundError`` is raised with a helpful
+    message.
     """
+
+    settings = settings or {}
+
+    cli_path = settings.get("cli_path")
+    if cli_path:
+        try:
+            subprocess.run(
+                [cli_path, "--help"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                check=True,
+                text=True,
+            )
+            return
+        except (FileNotFoundError, subprocess.CalledProcessError):
+            pass
 
     # Try system-wide "codex" first
     try:
@@ -88,9 +105,10 @@ def start_session(
     if _current_process is not None:
         raise RuntimeError("A Codex session is already running")
 
-    cmd = ["codex"]
-
     settings = settings or {}
+
+    cli_exe = settings.get("cli_path") or "codex"
+    cmd = [cli_exe]
 
     def add_flag(flag: str, value: object | None) -> None:
         if value is not None:

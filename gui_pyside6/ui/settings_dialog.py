@@ -4,9 +4,13 @@ from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QVBoxLayout,
+    QHBoxLayout,
     QLabel,
     QDoubleSpinBox,
     QSpinBox,
+    QLineEdit,
+    QPushButton,
+    QFileDialog,
     QWidget,
 )
 
@@ -36,6 +40,18 @@ class SettingsDialog(QDialog):
         self.max_spin.setValue(int(settings.get("max_tokens", 1024)))
         layout.addWidget(self.max_spin)
 
+        layout.addWidget(QLabel("Codex CLI Path:"))
+        cli_row = QWidget()
+        cli_layout = QHBoxLayout(cli_row)
+        cli_layout.setContentsMargins(0, 0, 0, 0)
+        self.cli_edit = QLineEdit()
+        self.cli_edit.setText(settings.get("cli_path", ""))
+        browse_btn = QPushButton("Browse")
+        browse_btn.clicked.connect(self.browse_cli)
+        cli_layout.addWidget(self.cli_edit)
+        cli_layout.addWidget(browse_btn)
+        layout.addWidget(cli_row)
+
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
@@ -44,5 +60,17 @@ class SettingsDialog(QDialog):
     def accept(self) -> None:  # type: ignore[override]
         self.settings["temperature"] = float(self.temp_spin.value())
         self.settings["max_tokens"] = int(self.max_spin.value())
+        self.settings["cli_path"] = self.cli_edit.text().strip()
         save_settings(self.settings)
         super().accept()
+
+    def browse_cli(self) -> None:
+        """Prompt the user to select the Codex CLI executable."""
+        filename, _ = QFileDialog.getOpenFileName(
+            self,
+            "Select Codex CLI",
+            str(self.cli_edit.text() or ""),
+        )
+        if filename:
+            self.cli_edit.setText(filename)
+

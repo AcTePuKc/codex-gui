@@ -1,7 +1,11 @@
 import json
 from pathlib import Path
 
-SETTINGS_PATH = Path("config/settings.json")
+# Build the settings path relative to this module so the GUI can be started
+# from any working directory.
+SETTINGS_PATH = (
+    Path(__file__).resolve().parent.parent / "config" / "settings.json"
+)
 
 DEFAULT_SETTINGS = {
     "temperature": 0.5,

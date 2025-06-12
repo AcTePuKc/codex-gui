@@ -1,7 +1,11 @@
 import json
 from pathlib import Path
 
-AGENTS_DIR = Path("resources/agents")
+# Resolve the agents directory relative to this module so the GUI can be run
+# from any working directory.
+AGENTS_DIR = (
+    Path(__file__).resolve().parent.parent / "resources" / "agents"
+)
 
 def load_agents() -> list[dict]:
     agents = []

@@ -79,10 +79,7 @@ class PromptEdit(QPlainTextEdit):
     pathCompletionRequested = Signal()
 
     def keyPressEvent(self, event) -> None:  # type: ignore[override]
-        if (
-            event.key() == Qt.Key_Space
-            and event.modifiers() == Qt.ControlModifier
-        ):
+        if event.key() == Qt.Key_Space and event.modifiers() == Qt.ControlModifier:
             self.pathCompletionRequested.emit()
             return
         super().keyPressEvent(event)
@@ -241,6 +238,18 @@ class MainWindow(QMainWindow):
         self.debug_console.visibilityChanged.connect(toggle_console_action.setChecked)
         view_menu.addAction(toggle_console_action)
 
+        toggle_left_panel_action = QAction("Left Panel", self)
+        toggle_left_panel_action.setCheckable(True)
+        toggle_left_panel_action.setChecked(True)
+        toggle_left_panel_action.toggled.connect(self.left_panel.setVisible)
+        view_menu.addAction(toggle_left_panel_action)
+
+        toggle_right_panel_action = QAction("Right Panel", self)
+        toggle_right_panel_action.setCheckable(True)
+        toggle_right_panel_action.setChecked(True)
+        toggle_right_panel_action.toggled.connect(self.history_view.setVisible)
+        view_menu.addAction(toggle_right_panel_action)
+
         clear_history_action = QAction("Clear History", self)
         clear_history_action.triggered.connect(self.clear_history)
         history_menu.addAction(clear_history_action)
@@ -266,8 +275,8 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(splitter)
 
         # ----------------------- Left Panel -----------------------
-        left_panel = QWidget()
-        left_layout = QVBoxLayout(left_panel)
+        self.left_panel = QWidget()
+        left_layout = QVBoxLayout(self.left_panel)
 
         self.agent_list = QListWidget()
         self.agent_list.addItems([a.get("name", "") for a in agent_manager.agents])
@@ -294,7 +303,7 @@ class MainWindow(QMainWindow):
                 f"Active Agent: {self.agent_list.currentItem().text()}"
             )
 
-        splitter.addWidget(left_panel)
+        splitter.addWidget(self.left_panel)
 
         # ----------------------- Center Panel -----------------------
         center_widget = QWidget()
@@ -348,9 +357,9 @@ class MainWindow(QMainWindow):
         self.path_completer.setWidget(self.prompt_edit)
         self.path_completer.activated.connect(self.insert_completion)
         self.prompt_edit.pathCompletionRequested.connect(self.show_path_completion)
-        QShortcut(QKeySequence(Qt.CTRL | Qt.Key_Space), self.prompt_edit).activated.connect(
-            self.show_path_completion
-        )
+        QShortcut(
+            QKeySequence(Qt.CTRL | Qt.Key_Space), self.prompt_edit
+        ).activated.connect(self.show_path_completion)
 
         self.output_view = QPlainTextEdit()
         self.output_view.setReadOnly(True)
@@ -649,10 +658,15 @@ class MainWindow(QMainWindow):
     # ------------------------------------------------------------------
 
     def run_login(self) -> None:
-        self._run_cli_command(lambda: codex_adapter.login(self.settings), "Login finished")
+        self._run_cli_command(
+            lambda: codex_adapter.login(self.settings), "Login finished"
+        )
 
     def redeem_free_credits(self) -> None:
-        self._run_cli_command(lambda: codex_adapter.redeem_free_credits(self.settings), "Credit redemption finished")
+        self._run_cli_command(
+            lambda: codex_adapter.redeem_free_credits(self.settings),
+            "Credit redemption finished",
+        )
 
     def _run_cli_command(self, fn, done_msg: str) -> None:
         if self.worker and self.worker.isRunning():

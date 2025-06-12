@@ -47,6 +47,8 @@ node bin/codex.js --help
 
 If the command fails, install dependencies and build the CLI using `pnpm install && pnpm build`.
 
+Codex CLI is a Node/TypeScript project that must be built once with `pnpm build` before it can be used. The GUI relies on this built CLI.
+
 ## 📦 Installation
 
 ```bash

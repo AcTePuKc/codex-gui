@@ -20,6 +20,8 @@ class CodexError(RuntimeError):
 __all__ = [
     "start_session",
     "stop_session",
+    "login",
+    "redeem_free_credits",
     "ensure_cli_available",
     "CodexError",
     "build_command",
@@ -260,3 +262,51 @@ def stop_session() -> None:
         except subprocess.TimeoutExpired:
             _current_process.kill()
     _current_process = None
+
+
+def _run_simple_command(cmd: list[str]) -> Iterable[str]:
+    """Run a Codex CLI command and yield output lines."""
+    global _current_process, _terminated
+    if _current_process is not None:
+        raise RuntimeError("A Codex session is already running")
+
+    _terminated = False
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        bufsize=1,
+    )
+    _current_process = process
+
+    assert process.stdout is not None
+    assert process.stderr is not None
+
+    try:
+        for line in process.stdout:
+            yield line.rstrip("\n")
+    finally:
+        process.stdout.close()
+        stderr_output = process.stderr.read()
+        process.stderr.close()
+        return_code = process.wait()
+        _current_process = None
+        if return_code != 0 and not _terminated:
+            raise CodexError(return_code, stderr_output)
+
+
+def login(settings: dict | None = None) -> Iterable[str]:
+    """Run ``codex --login`` and yield output lines."""
+    settings = settings or {}
+    cli_exe = settings.get("cli_path") or "codex"
+    cmd = [cli_exe, "--login"]
+    yield from _run_simple_command(cmd)
+
+
+def redeem_free_credits(settings: dict | None = None) -> Iterable[str]:
+    """Run ``codex --free`` and yield output lines."""
+    settings = settings or {}
+    cli_exe = settings.get("cli_path") or "codex"
+    cmd = [cli_exe, "--free"]
+    yield from _run_simple_command(cmd)

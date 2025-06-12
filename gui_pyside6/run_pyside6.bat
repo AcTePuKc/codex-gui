@@ -101,16 +101,13 @@ if not exist "%VENV_DIR%" (
 
 "%VENV_DIR%\Scripts\python.exe" -m ensurepip --upgrade >nul 2>&1
 
-:: Update pip and install requirements
+:: Update pip and install uv
 echo Updating pip...
-"%VENV_DIR%\Scripts\python.exe" -m pip install -U pip >nul
+"%VENV_DIR%\Scripts\python.exe" -m pip install -U pip uv >nul
 
 echo Installing requirements...
-if defined UV_BIN (
-    "%UV_BIN%" pip install -r "%REQ_FILE%"
-) else (
-    "%VENV_DIR%\Scripts\python.exe" -m pip install -r "%REQ_FILE%"
-)
+set "VIRTUAL_ENV=%VENV_DIR%"
+"%VENV_DIR%\Scripts\uv.exe" pip install -r "%REQ_FILE%"
 
 set "PYTHON_CMD=%VENV_DIR%\Scripts\python.exe"
 

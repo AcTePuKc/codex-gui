@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from PySide6.QtWidgets import QWidget, QDialog
 
-from ..main import ApiKeyDialog
+from ..ui.api_key_dialog import ApiKeyDialog
 
 
 def ensure_api_key(provider: str, parent: QWidget | None = None) -> bool:

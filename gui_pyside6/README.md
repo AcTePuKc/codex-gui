@@ -27,12 +27,15 @@ This project reimagines the Codex CLI as a desktop application, offering:
 ```bash
 git clone https://github.com/AcTePuKc/codex-gui
 cd codex-gui/gui_pyside6
-pip install uv
-uv pip install -r requirements.uv.in
 ./run_pyside6.sh  # Windows: run_pyside6.bat
 ````
 
-> Requires Python 3.9+ and PySide6
+> Requires Python 3.9+
+
+Running the script detects an active virtual environment. If none is found, it
+creates `~/.hybrid_tts/venv` (Windows: `%USERPROFILE%\.hybrid_tts\venv`),
+installs the requirements using `uv`, and then launches the GUI in a separate
+terminal window.
 
 ## 🔧 Project Structure (WIP)
 

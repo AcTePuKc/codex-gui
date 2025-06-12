@@ -81,6 +81,7 @@ class MainWindow(QMainWindow):
 
         button_bar = QHBoxLayout()
         layout.addLayout(button_bar)
+        self.button_bar = button_bar
 
         self.run_btn = QPushButton("Run")
         self.run_btn.clicked.connect(self.start_codex)

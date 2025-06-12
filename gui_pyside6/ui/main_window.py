@@ -2,6 +2,7 @@ from __future__ import annotations
 
 
 from PySide6.QtCore import QThread, Signal, Qt
+from PySide6.QtGui import QFontDatabase
 from PySide6.QtWidgets import (
     QAction,
     QHBoxLayout,
@@ -9,7 +10,6 @@ from PySide6.QtWidgets import (
     QMenuBar,
     QToolBar,
     QPushButton,
-    QTextEdit,
     QVBoxLayout,
     QWidget,
     QPlainTextEdit,
@@ -24,6 +24,7 @@ from ..backend.settings_manager import save_settings
 from ..backend import codex_adapter
 from ..backend.agent_manager import AgentManager
 from ..plugins.loader import load_plugins
+from ..utils.highlighter import PythonHighlighter
 
 
 class CodexWorker(QThread):
@@ -144,9 +145,22 @@ class MainWindow(QMainWindow):
         top_bar.addWidget(self.settings_btn)
         self.settings_btn.clicked.connect(self.open_settings_dialog)
 
+        inner_splitter = QSplitter(Qt.Vertical)
+
         self.prompt_edit = QPlainTextEdit()
         self.prompt_edit.setPlaceholderText("Enter your prompt here...")
-        center_layout.addWidget(self.prompt_edit)
+        inner_splitter.addWidget(self.prompt_edit)
+
+        self.output_view = QPlainTextEdit()
+        self.output_view.setReadOnly(True)
+        self.output_view.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
+        inner_splitter.addWidget(self.output_view)
+
+        inner_splitter.setStretchFactor(0, 1)
+        inner_splitter.setStretchFactor(1, 2)
+        center_layout.addWidget(inner_splitter)
+
+        self.highlighter = PythonHighlighter(self.output_view.document())
 
         button_bar = QHBoxLayout()
         center_layout.addLayout(button_bar)
@@ -160,10 +174,6 @@ class MainWindow(QMainWindow):
         self.stop_btn.setEnabled(False)
         self.stop_btn.clicked.connect(self.stop_codex)
         button_bar.addWidget(self.stop_btn)
-
-        self.output_view = QTextEdit()
-        self.output_view.setReadOnly(True)
-        center_layout.addWidget(self.output_view)
 
         splitter.addWidget(center_widget)
 
@@ -198,7 +208,7 @@ class MainWindow(QMainWindow):
         self.status_bar.showMessage("Running Codex session...")
 
     def append_output(self, text: str) -> None:
-        self.output_view.append(text)
+        self.output_view.appendPlainText(text)
         self.history_view.appendPlainText(text)
 
     def session_finished(self) -> None:

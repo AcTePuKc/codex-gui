@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QSplitter,
     QListWidget,
+    QFileDialog,
 )
 
 from .settings_dialog import SettingsDialog
@@ -30,6 +31,7 @@ from ..backend import codex_adapter
 from ..backend.agent_manager import AgentManager
 from ..plugins.loader import load_plugins
 from ..utils.highlighter import PythonHighlighter
+from pathlib import Path
 
 
 class CodexWorker(QThread):
@@ -38,16 +40,26 @@ class CodexWorker(QThread):
     line_received = Signal(str)
     finished = Signal()
 
-    def __init__(self, prompt: str, agent: dict, settings: dict) -> None:
+    def __init__(
+        self,
+        prompt: str,
+        agent: dict,
+        settings: dict,
+        view_path: str | None = None,
+    ) -> None:
         super().__init__()
         self.prompt = prompt
         self.agent = agent
         self.settings = settings
+        self.view_path = view_path
 
     def run(self) -> None:  # type: ignore[override]
         try:
             for line in codex_adapter.start_session(
-                self.prompt, self.agent, self.settings
+                self.prompt,
+                self.agent,
+                self.settings,
+                view=self.view_path,
             ):
                 self.line_received.emit(line)
         except codex_adapter.CodexError as exc:
@@ -102,6 +114,14 @@ class MainWindow(QMainWindow):
         clear_history_action = QAction("Clear History", self)
         clear_history_action.triggered.connect(self.clear_history)
         history_menu.addAction(clear_history_action)
+
+        browse_action = QAction("Browse Sessions", self)
+        browse_action.triggered.connect(self.open_sessions_dialog)
+        history_menu.addAction(browse_action)
+
+        view_action = QAction("View Rollout...", self)
+        view_action.triggered.connect(self.select_rollout_file)
+        history_menu.addAction(view_action)
 
         # ----------------------- Toolbar -----------------------
         toolbar = QToolBar("Main", self)
@@ -199,7 +219,7 @@ class MainWindow(QMainWindow):
         # Load optional plugins defined in plugins/manifest.json
         load_plugins(self)
 
-    def start_codex(self) -> None:
+    def start_codex(self, prompt: str | None = None, view_path: str | None = None) -> None:
         if self.worker and self.worker.isRunning():
             return
         try:
@@ -208,7 +228,7 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Codex CLI Missing", str(exc))
             self.status_bar.showMessage(str(exc))
             return
-        prompt = self.prompt_edit.toPlainText().strip()
+        prompt_text = prompt if prompt is not None else self.prompt_edit.toPlainText().strip()
         agent_item = self.agent_list.currentItem()
         agent_name = agent_item.text() if agent_item else ""
         self.agent_manager.set_active_agent(agent_name)
@@ -217,10 +237,10 @@ class MainWindow(QMainWindow):
         agent = self.agent_manager.active_agent or {}
 
         self.output_view.clear()
-        cmd = codex_adapter.build_command(prompt, agent, self.settings)
+        cmd = codex_adapter.build_command(prompt_text, agent, self.settings, view=view_path)
         if self.settings.get("verbose"):
             self.append_output("$ " + " ".join(cmd))
-        self.worker = CodexWorker(prompt, agent, self.settings)
+        self.worker = CodexWorker(prompt_text, agent, self.settings, view_path)
         self.worker.line_received.connect(self.append_output)
         self.worker.finished.connect(self.session_finished)
         self.worker.start()
@@ -277,3 +297,39 @@ class MainWindow(QMainWindow):
             self.agent_desc.setPlainText(agent.get("description", ""))
         else:
             self.agent_desc.clear()
+
+    # ------------------------------------------------------------------
+    # Session history helpers
+    # ------------------------------------------------------------------
+
+    def open_sessions_dialog(self) -> None:
+        from .sessions_dialog import SessionsDialog
+        from ..utils.sessions import load_sessions
+
+        sessions = load_sessions()
+        if not sessions:
+            QMessageBox.information(self, "No Sessions", "No previous sessions found.")
+            return
+
+        dialog = SessionsDialog(sessions, self)
+        if dialog.exec() and dialog.selected_path:
+            if dialog.mode == "view":
+                self.view_rollout(dialog.selected_path)
+            elif dialog.mode == "resume":
+                self.resume_session(dialog.selected_path)
+
+    def view_rollout(self, path: str) -> None:
+        self.start_codex("", view_path=path)
+
+    def resume_session(self, path: str) -> None:
+        self.start_codex(f"Resume this session: {path}")
+
+    def select_rollout_file(self) -> None:
+        filename, _ = QFileDialog.getOpenFileName(
+            self,
+            "Select rollout file",
+            str(Path.home() / ".codex" / "sessions"),
+            "JSON Files (*.json)",
+        )
+        if filename:
+            self.view_rollout(filename)

@@ -86,7 +86,12 @@ def ensure_cli_available(settings: dict | None = None) -> None:
         ) from exc
 
 
-def build_command(prompt: str, agent: dict, settings: dict | None = None) -> list[str]:
+def build_command(
+    prompt: str,
+    agent: dict,
+    settings: dict | None = None,
+    view: str | None = None,
+) -> list[str]:
     """Construct the Codex CLI command from agent and settings."""
     settings = settings or {}
 
@@ -132,12 +137,18 @@ def build_command(prompt: str, agent: dict, settings: dict | None = None) -> lis
         if value:
             cmd.append(flag)
 
+    if view:
+        cmd.extend(["--view", view])
+
     cmd.append(prompt)
     return cmd
 
 
 def start_session(
-    prompt: str, agent: dict, settings: dict | None = None
+    prompt: str,
+    agent: dict,
+    settings: dict | None = None,
+    view: str | None = None,
 ) -> Iterable[str]:
     """Start a Codex CLI session with the given prompt and agent.
 
@@ -171,7 +182,7 @@ def start_session(
     if _current_process is not None:
         raise RuntimeError("A Codex session is already running")
 
-    cmd = build_command(prompt, agent, settings)
+    cmd = build_command(prompt, agent, settings, view=view)
     _terminated = False
     process = subprocess.Popen(
         cmd,

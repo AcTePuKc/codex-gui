@@ -94,6 +94,13 @@ reasoning effort, and enable flex mode.
 
 Enable **Verbose Mode** in the settings dialog to print the final CLI command before each run.
 
+### Session History
+
+Use **History ▶ Browse Sessions** to open a list of saved sessions from
+`~/.codex/sessions`. Pick a session to **View** its rollout (runs the CLI with
+`--view`) or **Resume** it which inserts the prompt `Resume this session: <file>`
+and starts a new Codex run.
+
 ---
 
 ## 🗺️ IDE Layout

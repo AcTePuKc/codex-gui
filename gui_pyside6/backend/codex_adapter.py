@@ -15,7 +15,14 @@ class CodexError(RuntimeError):
         self.return_code = return_code
         self.stderr = stderr
 
-__all__ = ["start_session", "stop_session", "ensure_cli_available", "CodexError"]
+
+__all__ = [
+    "start_session",
+    "stop_session",
+    "ensure_cli_available",
+    "CodexError",
+    "build_command",
+]
 
 # Global process handle for the currently running Codex session
 _current_process: subprocess.Popen[str] | None = None
@@ -79,6 +86,42 @@ def ensure_cli_available(settings: dict | None = None) -> None:
         ) from exc
 
 
+def build_command(prompt: str, agent: dict, settings: dict | None = None) -> list[str]:
+    """Construct the Codex CLI command from agent and settings."""
+    settings = settings or {}
+
+    cli_exe = settings.get("cli_path") or "codex"
+    cmd: list[str] = [cli_exe]
+
+    def add_flag(flag: str, value: object | None) -> None:
+        if value is not None:
+            cmd.extend([flag, str(value)])
+
+    if "temperature" in agent:
+        add_flag("--temperature", agent["temperature"])
+    elif "default_temperature" in agent:
+        add_flag("--temperature", agent["default_temperature"])
+    else:
+        add_flag("--temperature", settings.get("temperature"))
+
+    flag_map = {
+        "max_tokens": "--max-tokens",
+        "top_p": "--top-p",
+        "frequency_penalty": "--frequency-penalty",
+        "presence_penalty": "--presence-penalty",
+        "model": "--model",
+    }
+
+    for key, flag in flag_map.items():
+        if key in agent:
+            add_flag(flag, agent[key])
+        elif key in settings:
+            add_flag(flag, settings[key])
+
+    cmd.append(prompt)
+    return cmd
+
+
 def start_session(
     prompt: str, agent: dict, settings: dict | None = None
 ) -> Iterable[str]:
@@ -114,39 +157,7 @@ def start_session(
     if _current_process is not None:
         raise RuntimeError("A Codex session is already running")
 
-    settings = settings or {}
-
-    cli_exe = settings.get("cli_path") or "codex"
-    cmd = [cli_exe]
-
-    def add_flag(flag: str, value: object | None) -> None:
-        if value is not None:
-            cmd.extend([flag, str(value)])
-
-    # Handle temperature separately to avoid duplicate flags
-    if "temperature" in agent:
-        add_flag("--temperature", agent["temperature"])
-    elif "default_temperature" in agent:
-        add_flag("--temperature", agent["default_temperature"])
-    else:
-        add_flag("--temperature", settings.get("temperature"))
-
-    flag_map = {
-        "max_tokens": "--max-tokens",
-        "top_p": "--top-p",
-        "frequency_penalty": "--frequency-penalty",
-        "presence_penalty": "--presence-penalty",
-        "model": "--model",
-    }
-
-    for key, flag in flag_map.items():
-        if key in agent:
-            add_flag(flag, agent[key])
-        elif key in settings:
-            add_flag(flag, settings[key])
-
-    # Append the user prompt last
-    cmd.append(prompt)
+    cmd = build_command(prompt, agent, settings)
     _terminated = False
     process = subprocess.Popen(
         cmd,

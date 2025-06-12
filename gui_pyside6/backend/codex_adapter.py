@@ -4,13 +4,53 @@ from __future__ import annotations
 
 import subprocess
 from collections.abc import Iterable
+from pathlib import Path
 
-__all__ = ["start_session", "stop_session"]
+__all__ = ["start_session", "stop_session", "ensure_cli_available"]
 
 # Global process handle for the currently running Codex session
 _current_process: subprocess.Popen[str] | None = None
 # Indicates whether stop_session() was invoked
 _terminated: bool = False
+
+
+def ensure_cli_available() -> None:
+    """Verify that the Codex CLI is accessible.
+
+    This checks for either ``codex`` on ``PATH`` or the local Node.js
+    entrypoint ``codex-cli/bin/codex.js``. On failure a ``FileNotFoundError``
+    is raised with a user-friendly message.
+    """
+
+    # Try system-wide "codex" first
+    try:
+        subprocess.run(
+            ["codex", "--help"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=True,
+            text=True,
+        )
+        return
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        pass
+
+    # Fall back to local Node.js script
+    root = Path(__file__).resolve().parents[2]
+    cli_js = root / "codex-cli" / "bin" / "codex.js"
+    try:
+        subprocess.run(
+            ["node", str(cli_js), "--help"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=True,
+            text=True,
+        )
+    except (FileNotFoundError, subprocess.CalledProcessError) as exc:
+        raise FileNotFoundError(
+            "Codex CLI is missing. Run 'pnpm build' in the codex-cli directory "
+            "or add 'codex' to your PATH."
+        ) from exc
 
 
 def start_session(prompt: str, agent: dict) -> Iterable[str]:

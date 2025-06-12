@@ -190,6 +190,12 @@ class MainWindow(QMainWindow):
     def start_codex(self) -> None:
         if self.worker and self.worker.isRunning():
             return
+        try:
+            codex_adapter.ensure_cli_available()
+        except FileNotFoundError as exc:
+            QMessageBox.warning(self, "Codex CLI Missing", str(exc))
+            self.status_bar.showMessage(str(exc))
+            return
         prompt = self.prompt_edit.toPlainText().strip()
         agent_item = self.agent_list.currentItem()
         agent_name = agent_item.text() if agent_item else ""

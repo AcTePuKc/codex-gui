@@ -9,6 +9,7 @@ __pycache__/
 .uv/
 uv.lock
 requirements.lock.txt
+settings.json
 
 
 # Tools

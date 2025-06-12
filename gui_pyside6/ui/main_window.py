@@ -237,7 +237,8 @@ class MainWindow(QMainWindow):
         toggle_console_action = QAction("Debug Console", self)
         toggle_console_action.setCheckable(True)
         toggle_console_action.setChecked(True)
-        toggle_console_action.triggered.connect(self.debug_console.setVisible)
+        toggle_console_action.toggled.connect(self.debug_console.setVisible)
+        self.debug_console.visibilityChanged.connect(toggle_console_action.setChecked)
         view_menu.addAction(toggle_console_action)
 
         clear_history_action = QAction("Clear History", self)

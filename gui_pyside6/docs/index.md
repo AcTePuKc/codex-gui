@@ -31,7 +31,7 @@ Codex-GUI is designed for developers who want a more interactive experience with
 - Use agents to control behavior (e.g. Python-focused, refactor-only, DevOps helper)
 - Generate and test code live inside a `tools/` sandbox
 - Visualize file context, syntax, and output
-- Manage prompt history and multi-tab sessions
+- Manage prompt history and multi-tab sessions (History ▶ Clear)
 
 ---
 
@@ -82,6 +82,7 @@ Key modules:
 | Tool Panel     | View/edit Codex-generated files |
 | Settings Dialog| Control temperature, max tokens, runtime env |
 | Debug Console  | Terminal-style output window (optional) |
+| History Panel  | View past responses and clear them |
 
 All components are modular for future plugins.
 

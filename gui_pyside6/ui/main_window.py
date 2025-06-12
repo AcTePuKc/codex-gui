@@ -65,6 +65,7 @@ class MainWindow(QMainWindow):
         file_menu = menu_bar.addMenu("File")
         settings_menu = menu_bar.addMenu("Settings")
         help_menu = menu_bar.addMenu("Help")
+        history_menu = menu_bar.addMenu("History")
 
         self.run_action = QAction("Run", self)
         self.run_action.triggered.connect(self.start_codex)
@@ -84,6 +85,10 @@ class MainWindow(QMainWindow):
         about_action.triggered.connect(
             lambda: QMessageBox.about(self, "About Codex-GUI", "Codex-GUI")
         )
+
+        clear_history_action = QAction("Clear History", self)
+        clear_history_action.triggered.connect(self.clear_history)
+        history_menu.addAction(clear_history_action)
 
         # ----------------------- Toolbar -----------------------
         toolbar = QToolBar("Main", self)
@@ -216,11 +221,15 @@ class MainWindow(QMainWindow):
         save_settings(self.settings)
         self.status_bar.showMessage(f"Active Agent: {name}")
         self.update_agent_description()
-
+        
     def open_settings_dialog(self) -> None:
         dialog = SettingsDialog(self.settings, self)
         dialog.exec()
         self.status_bar.showMessage("Settings updated")
+
+    def clear_history(self) -> None:
+        """Clear the history panel."""
+        self.history_view.clear()
 
     def update_agent_description(self) -> None:
         """Update the description panel with the active agent's details."""

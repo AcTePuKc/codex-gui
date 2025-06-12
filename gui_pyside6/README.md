@@ -77,6 +77,7 @@ The window is split into three panels using a horizontal splitter:
 
 A toolbar at the top mirrors the **Run** and **Stop** actions found below the
 editor. The status bar reports which agent is active and session progress.
+If the Codex CLI encounters an error, its stderr output will appear in the output panel.
 
 ## 📚 Docs
 

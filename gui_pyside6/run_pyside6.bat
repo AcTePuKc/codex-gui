@@ -101,25 +101,15 @@ if not exist "%VENV_DIR%" (
 
 "%VENV_DIR%\Scripts\python.exe" -m ensurepip --upgrade >nul 2>&1
 
-:: Sanity check for pip.exe
-if not exist "%VENV_DIR%\Scripts\pip.exe" (
-    echo [ERROR] pip.exe not found. Virtual environment setup failed.
-    echo You may need to manually delete the broken venv and re-run the script.
-    pause
-    exit /b 1
-) else (
-    echo Found existing virtual environment.
-)
-
 :: Update pip and install requirements
 echo Updating pip...
-"%VENV_DIR%\Scripts\pip.exe" install -U pip >nul
+"%VENV_DIR%\Scripts\python.exe" -m pip install -U pip >nul
 
 echo Installing requirements...
 if defined UV_BIN (
     "%UV_BIN%" pip install -r "%REQ_FILE%"
 ) else (
-    "%VENV_DIR%\Scripts\pip.exe" install -r "%REQ_FILE%"
+    "%VENV_DIR%\Scripts\python.exe" -m pip install -r "%REQ_FILE%"
 )
 
 set "PYTHON_CMD=%VENV_DIR%\Scripts\python.exe"

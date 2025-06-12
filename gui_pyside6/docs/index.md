@@ -94,7 +94,12 @@ frequency/presence penalties, toggle auto-edit or full-auto modes, set the
 reasoning effort, and enable flex mode.
 
 Enable **Verbose Mode** in the settings dialog to print the final CLI command before each run.
-Quiet mode suppresses progress output, while **Full Context** sends the entire conversation to the CLI using `--full-context`.
+Quiet mode suppresses progress output and reduces logging noise. Full Context passes the entire chat history to the CLI using the `--full-context` flag.
+To enable these modes, tick **Quiet Mode** or **Full Context** in the Settings dialog.
+```python
+self.quiet_check = QCheckBox("Quiet Mode")
+self.full_context_check = QCheckBox("Full Context")
+```
 
 ### Session History
 
@@ -187,6 +192,7 @@ Current examples:
 - [ ] Execution in `uv` sandbox
 - [ ] Plugin manager
 - [x] Drag-and-drop file attachments
+- [x] Quiet & full-context CLI flags
 
 ---
 

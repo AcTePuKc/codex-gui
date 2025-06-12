@@ -28,6 +28,7 @@ from PySide6.QtWidgets import (
 from .settings_dialog import SettingsDialog
 from .tools_panel import ToolsPanel
 from .debug_console import DebugConsole
+from .agent_editor_dialog import AgentEditorDialog
 from ..backend.settings_manager import save_settings
 
 from ..backend import codex_adapter
@@ -135,6 +136,7 @@ class MainWindow(QMainWindow):
         file_menu = menu_bar.addMenu("File")
         settings_menu = menu_bar.addMenu("Settings")
         plugins_menu = menu_bar.addMenu("Plugins")
+        agents_menu = menu_bar.addMenu("Agents")
         help_menu = menu_bar.addMenu("Help")
         history_menu = menu_bar.addMenu("History")
         view_menu = menu_bar.addMenu("View")
@@ -155,6 +157,13 @@ class MainWindow(QMainWindow):
         plugin_mgr_action = QAction("Plugin Manager", self)
         plugin_mgr_action.triggered.connect(self.open_plugin_manager)
         plugins_menu.addAction(plugin_mgr_action)
+
+        new_agent_action = QAction("New Agent", self)
+        new_agent_action.triggered.connect(self.create_agent)
+        edit_agent_action = QAction("Edit Agent", self)
+        edit_agent_action.triggered.connect(self.edit_agent)
+        agents_menu.addAction(new_agent_action)
+        agents_menu.addAction(edit_agent_action)
 
         about_action = QAction("About", self)
         help_menu.addAction(about_action)
@@ -438,6 +447,10 @@ class MainWindow(QMainWindow):
         """Clear the history panel."""
         self.history_view.clear()
 
+    def refresh_agent_list(self) -> None:
+        self.agent_list.clear()
+        self.agent_list.addItems([a.get("name", "") for a in self.agent_manager.agents])
+
     def browse_images(self) -> None:
         files, _ = QFileDialog.getOpenFileNames(
             self,
@@ -485,6 +498,31 @@ class MainWindow(QMainWindow):
             self.agent_desc.setPlainText(agent.get("description", ""))
         else:
             self.agent_desc.clear()
+
+    def create_agent(self) -> None:
+        dialog = AgentEditorDialog(parent=self)
+        if dialog.exec():
+            self.agent_manager.reload()
+            self.refresh_agent_list()
+            name = dialog.name_edit.text().strip()
+            items = self.agent_list.findItems(name, Qt.MatchExactly)
+            if items:
+                self.agent_list.setCurrentItem(items[0])
+            self.update_agent_description()
+
+    def edit_agent(self) -> None:
+        agent = self.agent_manager.active_agent
+        if not agent:
+            QMessageBox.information(self, "No Agent", "Please select an agent to edit.")
+            return
+        dialog = AgentEditorDialog(agent, self)
+        if dialog.exec():
+            self.agent_manager.reload()
+            self.refresh_agent_list()
+            items = self.agent_list.findItems(agent.get("name", ""), Qt.MatchExactly)
+            if items:
+                self.agent_list.setCurrentItem(items[0])
+            self.update_agent_description()
 
     # ------------------------------------------------------------------
     # Session history helpers

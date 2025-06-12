@@ -12,7 +12,9 @@ def load_agents() -> list[dict]:
     for file in AGENTS_DIR.glob("*.json"):
         with file.open("r", encoding="utf-8") as f:
             try:
-                agents.append(json.load(f))
+                data = json.load(f)
+                data["_path"] = str(file)
+                agents.append(data)
             except json.JSONDecodeError:
                 print(f"Failed to parse agent: {file.name}")
     return agents

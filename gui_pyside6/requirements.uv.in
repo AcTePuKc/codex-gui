@@ -1,3 +1,4 @@
+# This requirements.uv.in file is for the GUI in gui_pyside6/
 # GUI framework
 PySide6
 

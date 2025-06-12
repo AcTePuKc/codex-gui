@@ -84,4 +84,13 @@ Users can:
 
 ---
 
+### Note
+* Codex-GUI and Codex-CLI are developed in parallel but live in different folders.
+* Changes to one shouldn't interfere with the other. Keep CLI logic in the root, and GUI in `gui_pyside6/`.
+---
+
+*Reminder:* `gui_pyside6/` is for the PySide6 GUI only. Keep CLI-related scripts and logic at the root level.
+
 For backend integration, see `backend/agent_manager.py`.
+
+---

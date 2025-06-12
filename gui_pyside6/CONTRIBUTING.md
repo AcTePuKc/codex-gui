@@ -63,6 +63,18 @@ codex-gui/
 ├── docs/
 │   └── index.md
 ```
+---
+## Codebase Layout
+
+- The **CLI** lives at the root of the repository and is implemented in TypeScript.
+- The **GUI** lives inside `gui_pyside6/` and is implemented using Python + PySide6.
+- These are related but separate projects. Avoid mixing dependencies or logic between them.
+- Only run `pnpm run build` if you're modifying the TypeScript CLI.
+
+GUI and CLI are loosely coupled via the Codex backend engine. You can develop either in isolation.
+- The GUI uses the CLI as a backend service, so you can run the GUI without needing to run the CLI separately.
+- The CLI is primarily used for command-line interactions, while the GUI provides a user-friendly interface.
+---
 
 ## 🔒 Restricted Directories
 

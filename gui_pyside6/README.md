@@ -65,6 +65,18 @@ creates `~/.hybrid_tts/venv` (Windows: `%USERPROFILE%\.hybrid_tts\venv`) for
 the optional text-to-speech backends, installs the requirements using `uv`, and
 then launches the GUI in a separate terminal window.
 
+---
+
+## Project Structure
+
+- `codex/` – The CLI backend, written in TypeScript. Run `pnpm run build` only when making CLI changes.
+- `gui_pyside6/` – A full-featured Python GUI using PySide6.
+
+These components are developed separately but communicate via a common API/backend.
+- `gui_pyside6/main.py` – The main entry point for the GUI application.
+- `gui_pyside6/ui/` – Contains the UI components built with PySide6.
+---
+
 ## 🔧 Project Structure (WIP)
 
 ```
@@ -82,6 +94,8 @@ codex-gui/
 ├── docs/
 │   └── index.md
 ```
+
+---
 
 ## 🗺️ IDE Layout
 

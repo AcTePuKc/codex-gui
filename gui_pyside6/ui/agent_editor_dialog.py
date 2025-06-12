@@ -8,7 +8,6 @@ from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QVBoxLayout,
-    QHBoxLayout,
     QLabel,
     QLineEdit,
     QPlainTextEdit,
@@ -26,7 +25,9 @@ from ..backend.agent_loader import AGENTS_DIR
 class AgentEditorDialog(QDialog):
     """Dialog for creating or editing agent JSON files."""
 
-    def __init__(self, agent: dict | None = None, parent: QWidget | None = None) -> None:
+    def __init__(
+        self, agent: dict | None = None, parent: QWidget | None = None
+    ) -> None:
         super().__init__(parent)
         self.agent_path: Path | None = None
         data = agent or {}

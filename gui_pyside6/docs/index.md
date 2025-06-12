@@ -124,6 +124,11 @@ Planned plugin architecture will allow:
 
 Plugins will live in `plugins/` and use a manifest system.
 
+Current examples:
+
+- **Syntax Formatter** – adds a button that formats the prompt using Black.
+- **Agent Logger** – saves prompts and responses to `agent_log.txt` when enabled.
+
 ---
 
 ## 🛠️ Custom Agents/Plugins {#custom-agentsplugins}

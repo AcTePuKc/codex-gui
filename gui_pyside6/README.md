@@ -64,6 +64,11 @@ For agent presets, architecture decisions, and developer info, see:
 
 Plugins listed in `plugins/manifest.json` are loaded at startup using `load_plugins`. Create a Python module under `plugins/` and enable it in the manifest to extend the UI.
 
+Example plugins included:
+
+- **Syntax Formatter** – adds a *Format* button that runs the Black formatter on the prompt editor.
+- **Agent Logger** – records prompts and responses to `agent_log.txt` when enabled.
+
 Some plugins rely on optional TTS backends. These dependencies are installed on demand via `ensure_backend_installed()` which detects your active virtual environment or falls back to `~/.hybrid_tts/venv`.
 
 ## 🙏 Credits

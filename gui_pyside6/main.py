@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import sys
-import os
 from PySide6.QtWidgets import (
     QApplication,
     QDialog,
@@ -48,14 +47,6 @@ class ApiKeyDialog(QDialog):
 def main() -> None:
     """Entry point for the Hybrid PySide6 GUI."""
     app = QApplication(sys.argv)
-
-    if "OPENAI_API_KEY" not in os.environ:
-        dialog = ApiKeyDialog()
-        if dialog.exec() == QDialog.Accepted:
-            os.environ["OPENAI_API_KEY"] = dialog.api_key()
-        else:
-            print("Error: OPENAI_API_KEY is required", file=sys.stderr)
-            sys.exit(1)
 
     settings = load_settings()
     agent_manager = AgentManager()

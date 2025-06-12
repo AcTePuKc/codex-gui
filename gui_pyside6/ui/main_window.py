@@ -40,6 +40,7 @@ from ..plugins.loader import load_plugins
 from ..utils.highlighter import PythonHighlighter
 from ..utils.file_scanner import find_source_files
 from ..utils.project_paths import get_common_paths
+from ..utils.api_key import ensure_api_key
 from pathlib import Path
 
 
@@ -409,6 +410,10 @@ class MainWindow(QMainWindow):
             self.status_bar.showMessage(str(exc))
             self.debug_console.append_error(str(exc))
             return
+        provider = self.settings.get("provider", "openai")
+        if provider not in {"local", "custom"}:
+            if not ensure_api_key(provider, self):
+                return
         prompt_text = (
             prompt if prompt is not None else self.prompt_edit.toPlainText().strip()
         )

@@ -65,10 +65,16 @@ class SettingsDialog(QDialog):
         layout.addWidget(self.max_spin)
 
         layout.addWidget(QLabel("Provider:"))
-        self.provider_edit = QLineEdit()
-        self.provider_edit.setText(settings.get("provider", "openai"))
-        layout.addWidget(self.provider_edit)
-        self.provider_edit.editingFinished.connect(self.load_models)
+        self.provider_combo = QComboBox()
+        self.provider_combo.addItem("OpenAI (Codex)", "openai")
+        self.provider_combo.addItem("Local", "local")
+        self.provider_combo.addItem("Custom", "custom")
+        current_provider = settings.get("provider", "openai")
+        index = self.provider_combo.findData(current_provider)
+        if index >= 0:
+            self.provider_combo.setCurrentIndex(index)
+        layout.addWidget(self.provider_combo)
+        self.provider_combo.currentIndexChanged.connect(self.load_models)
 
         layout.addWidget(QLabel("Model:"))
         model_row = QWidget()
@@ -135,11 +141,15 @@ class SettingsDialog(QDialog):
         layout.addWidget(self.notify_check)
 
         self.no_project_doc_check = QCheckBox("No Project Doc")
-        self.no_project_doc_check.setChecked(bool(settings.get("no_project_doc", False)))
+        self.no_project_doc_check.setChecked(
+            bool(settings.get("no_project_doc", False))
+        )
         layout.addWidget(self.no_project_doc_check)
 
         self.disable_storage_check = QCheckBox("Disable Response Storage")
-        self.disable_storage_check.setChecked(bool(settings.get("disable_response_storage", False)))
+        self.disable_storage_check.setChecked(
+            bool(settings.get("disable_response_storage", False))
+        )
         layout.addWidget(self.disable_storage_check)
 
         layout.addWidget(QLabel("Project Doc:"))
@@ -172,11 +182,17 @@ class SettingsDialog(QDialog):
         layout.addWidget(buttons)
 
     def load_models(self) -> None:
-        """Populate the model combo box from the selected provider."""
-        provider = self.provider_edit.text().strip() or "openai"
-        try:
-            models = get_available_models(provider)
-        except Exception:
+        """Populate the model combo box based on the selected provider."""
+        provider = self.provider_combo.currentData() or "openai"
+        if provider == "openai":
+            try:
+                models = get_available_models(provider)
+            except Exception:
+                models = []
+        elif provider in {"local", "custom"}:
+            # TODO: implement retrieval of local/custom models
+            models = []
+        else:
             models = []
 
         current = self.settings.get("model", "")
@@ -197,7 +213,7 @@ class SettingsDialog(QDialog):
         self.settings["frequency_penalty"] = float(self.freq_spin.value())
         self.settings["presence_penalty"] = float(self.presence_spin.value())
         self.settings["max_tokens"] = int(self.max_spin.value())
-        self.settings["provider"] = self.provider_edit.text().strip()
+        self.settings["provider"] = self.provider_combo.currentData() or "openai"
         self.settings["model"] = self.model_combo.currentText().strip()
         self.settings["approval_mode"] = self.approval_combo.currentText()
         self.settings["auto_edit"] = self.auto_edit_check.isChecked()
@@ -210,7 +226,9 @@ class SettingsDialog(QDialog):
         self.settings["verbose"] = self.verbose_check.isChecked()
         self.settings["notify"] = self.notify_check.isChecked()
         self.settings["no_project_doc"] = self.no_project_doc_check.isChecked()
-        self.settings["disable_response_storage"] = self.disable_storage_check.isChecked()
+        self.settings["disable_response_storage"] = (
+            self.disable_storage_check.isChecked()
+        )
         self.settings["project_doc"] = self.project_doc_edit.text().strip()
         self.settings["writable_root"] = self.writable_root_edit.text().strip()
         save_settings(self.settings)

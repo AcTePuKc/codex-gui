@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import subprocess
+import os
 from collections.abc import Iterable
 from pathlib import Path
 
@@ -119,6 +120,7 @@ def build_command(
         "provider": "--provider",
         "approval_mode": "--approval-mode",
         "reasoning": "--reasoning",
+        "project_doc": "--project-doc",
     }
 
     bool_flags = {
@@ -127,6 +129,9 @@ def build_command(
         "flex_mode": "--flex-mode",
         "quiet": "--quiet",
         "full_context": "--full-context",
+        "notify": "--notify",
+        "no_project_doc": "--no-project-doc",
+        "disable_response_storage": "--disable-response-storage",
     }
 
     for key, flag in flag_map.items():
@@ -143,6 +148,15 @@ def build_command(
         value = agent.get(key, settings.get(key))
         if value:
             cmd.append(flag)
+
+    writable_root = agent.get("writable_root", settings.get("writable_root"))
+    if writable_root:
+        if isinstance(writable_root, str):
+            roots = [r for r in writable_root.split(os.pathsep) if r]
+        else:
+            roots = list(writable_root)
+        for root_path in roots:
+            cmd.extend(["--writable-root", str(root_path)])
 
     if view:
         cmd.extend(["--view", view])

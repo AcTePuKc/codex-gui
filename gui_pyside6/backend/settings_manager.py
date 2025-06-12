@@ -26,6 +26,11 @@ DEFAULT_SETTINGS = {
     "cli_path": "",
     # Print the final CLI command in the output view when running a session.
     "verbose": False,
+    "notify": False,
+    "project_doc": "",
+    "no_project_doc": False,
+    "disable_response_storage": False,
+    "writable_root": "",
 }
 
 

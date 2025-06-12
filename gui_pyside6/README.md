@@ -22,6 +22,17 @@ This project reimagines the Codex CLI as a desktop application, offering:
 - Live preview of completions
 - Export/import conversations
 
+## 📝 Prerequisites
+
+- Python 3.9 or newer
+- A built copy of **Codex CLI**. From the `codex-cli` directory run:
+
+```bash
+node bin/codex.js --help
+```
+
+If the command fails, install dependencies and build the CLI using `pnpm install && pnpm build`.
+
 ## 📦 Installation
 
 ```bash
@@ -54,6 +65,17 @@ codex-gui/
 ├── docs/
 │   └── index.md
 ```
+
+## 🗺️ IDE Layout
+
+The window is split into three panels using a horizontal splitter:
+
+- **Left panel** – shows the list of agents and their description.
+- **Center panel** – contains the prompt editor and the streaming output view.
+- **Right panel** – displays the conversation history.
+
+A toolbar at the top mirrors the **Run** and **Stop** actions found below the
+editor. The status bar reports which agent is active and session progress.
 
 ## 📚 Docs
 

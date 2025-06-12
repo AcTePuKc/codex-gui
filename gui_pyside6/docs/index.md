@@ -86,6 +86,7 @@ Key modules:
 | Debug Console  | Dockable log viewer for stdout/stderr |
 | History Panel  | View past responses and clear them |
 | Images List    | Attach images via drag-and-drop |
+| Files List     | Choose which project files to pass to Codex |
 
 All components are modular for future plugins.
 
@@ -153,6 +154,18 @@ the panel's log view. Optionally choose a backend name from the drop-down before
 running to trigger `ensure_backend_installed()` for that backend.
 
 Security: No script is run unless the user explicitly clicks **Run**.
+
+---
+
+## 📂 File Context Detection
+
+At startup the GUI scans the current working directory for common source files
+(Python, JavaScript, Rust, etc.). Any discovered paths appear in a **Files** list
+below the image attachments.
+
+Use **Add File** to include additional paths or **Remove** to exclude them.
+When a Codex session is launched these selected files are passed to the CLI via
+`--file` flags so Codex can read them as context.
 
 ---
 

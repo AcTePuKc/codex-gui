@@ -34,6 +34,7 @@ from ..backend import codex_adapter
 from ..backend.agent_manager import AgentManager
 from ..plugins.loader import load_plugins
 from ..utils.highlighter import PythonHighlighter
+from ..utils.file_scanner import find_source_files
 from pathlib import Path
 
 
@@ -81,6 +82,7 @@ class CodexWorker(QThread):
         settings: dict,
         view_path: str | None = None,
         images: list[str] | None = None,
+        files: list[str] | None = None,
     ) -> None:
         super().__init__()
         self.prompt = prompt
@@ -88,6 +90,7 @@ class CodexWorker(QThread):
         self.settings = settings
         self.view_path = view_path
         self.images = images or []
+        self.files = files or []
 
     def run(self) -> None:  # type: ignore[override]
         try:
@@ -97,6 +100,7 @@ class CodexWorker(QThread):
                 self.settings,
                 view=self.view_path,
                 images=self.images,
+                files=self.files,
             ):
                 self.line_received.emit(line)
                 self.log_line.emit("info", line)
@@ -250,6 +254,19 @@ class MainWindow(QMainWindow):
         self.remove_image_btn.clicked.connect(self.remove_selected_images)
         images_row.addWidget(self.remove_image_btn)
 
+        files_row = QHBoxLayout()
+        center_layout.addLayout(files_row)
+        files_row.addWidget(QLabel("Files:"))
+        self.file_list = QListWidget()
+        self.file_list.setMaximumHeight(60)
+        files_row.addWidget(self.file_list)
+        self.add_file_btn = QPushButton("Add File")
+        self.add_file_btn.clicked.connect(self.browse_files)
+        files_row.addWidget(self.add_file_btn)
+        self.remove_file_btn = QPushButton("Remove")
+        self.remove_file_btn.clicked.connect(self.remove_selected_files)
+        files_row.addWidget(self.remove_file_btn)
+
         inner_splitter = QSplitter(Qt.Vertical)
 
         self.prompt_edit = QPlainTextEdit()
@@ -318,12 +335,19 @@ class MainWindow(QMainWindow):
         image_paths = [
             self.image_list.item(i).text() for i in range(self.image_list.count())
         ]
+        if self.file_list.count() == 0:
+            for path in self.suggest_source_files():
+                self.file_list.addItem(path)
+        file_paths = [
+            self.file_list.item(i).text() for i in range(self.file_list.count())
+        ]
         cmd = codex_adapter.build_command(
             prompt_text,
             agent,
             self.settings,
             view=view_path,
             images=image_paths if image_paths else None,
+            files=file_paths if file_paths else None,
         )
         if self.settings.get("verbose"):
             self.append_output("$ " + " ".join(cmd))
@@ -334,6 +358,7 @@ class MainWindow(QMainWindow):
             self.settings,
             view_path,
             images=image_paths,
+            files=file_paths,
         )
         self.worker.line_received.connect(self.append_output)
         self.worker.log_line.connect(self.handle_log_line)
@@ -427,9 +452,31 @@ class MainWindow(QMainWindow):
             ):
                 self.image_list.addItem(path)
 
+    def browse_files(self) -> None:
+        files, _ = QFileDialog.getOpenFileNames(
+            self,
+            "Select files",
+            str(Path.cwd()),
+            "All Files (*)",
+        )
+        for path in files:
+            if not any(
+                path == self.file_list.item(i).text()
+                for i in range(self.file_list.count())
+            ):
+                self.file_list.addItem(path)
+
     def remove_selected_images(self) -> None:
         for item in self.image_list.selectedItems():
             self.image_list.takeItem(self.image_list.row(item))
+
+    def remove_selected_files(self) -> None:
+        for item in self.file_list.selectedItems():
+            self.file_list.takeItem(self.file_list.row(item))
+
+    def suggest_source_files(self) -> list[str]:
+        """Return a list of source files discovered in the current directory."""
+        return find_source_files(Path.cwd(), max_files=20)
 
     def update_agent_description(self) -> None:
         """Update the description panel with the active agent's details."""

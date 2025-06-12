@@ -26,8 +26,9 @@ This project reimagines the Codex CLI as a desktop application, offering:
 
 ```bash
 git clone https://github.com/AcTePuKc/codex-gui
-cd codex-gui
-pip install -r requirements.txt
+cd codex-gui/gui_pyside6
+pip install uv
+uv pip install -r requirements.uv.in
 ./run_pyside6.sh  # Windows: run_pyside6.bat
 ````
 
@@ -58,6 +59,12 @@ For agent presets, architecture decisions, and developer info, see:
 * [AGENTS.md](./AGENTS.md)
 * [CONTRIBUTING.md](./CONTRIBUTING.md)
 * [docs/index.md](./docs/index.md)
+
+## 🔌 Plugins & Backends
+
+Plugins listed in `plugins/manifest.json` are loaded at startup using `load_plugins`. Create a Python module under `plugins/` and enable it in the manifest to extend the UI.
+
+Some plugins rely on optional TTS backends. These dependencies are installed on demand via `ensure_backend_installed()` which detects your active virtual environment or falls back to `~/.hybrid_tts/venv`.
 
 ## 🙏 Credits
 

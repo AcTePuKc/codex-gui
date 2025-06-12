@@ -69,7 +69,7 @@ then launches the GUI in a separate terminal window.
 
 1. Run `./run_pyside6.sh` (Windows: `run_pyside6.bat`).
 2. The script installs **Codex CLI** automatically with `npm install -g @openai/codex` if it is not already present.
-3. On first launch the GUI prompts for your OpenAI API key unless `OPENAI_API_KEY` is set.
+3. The GUI prompts for your OpenAI API key the first time you run a session or refresh models if `OPENAI_API_KEY` is not set.
 
 To set the key manually in your shell:
 

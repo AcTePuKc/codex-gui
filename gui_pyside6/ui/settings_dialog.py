@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
 
 from ..backend.settings_manager import save_settings
 from ..backend.model_manager import get_available_models
+from ..utils.api_key import ensure_api_key
 
 
 class SettingsDialog(QDialog):
@@ -184,6 +185,10 @@ class SettingsDialog(QDialog):
     def load_models(self) -> None:
         """Populate the model combo box based on the selected provider."""
         provider = self.provider_combo.currentData() or "openai"
+        if provider not in {"local", "custom"}:
+            if not ensure_api_key(provider, self):
+                self.model_combo.clear()
+                return
         if provider == "openai":
             try:
                 models = get_available_models(provider)

@@ -3,9 +3,8 @@ setlocal enabledelayedexpansion
 
 :: Paths
 set "SCRIPT_DIR=%~dp0"
-set "VENV_DIR=%REPO_ROOT%\.venv"
-set "REQ_FILE=%SCRIPT_DIR%requirements.uv.in"
 for %%I in ("%SCRIPT_DIR%..") do set "REPO_ROOT=%%~fI"
+set "REQ_FILE=%SCRIPT_DIR%requirements.uv.in"
 
 echo ======================================================
 echo  Codex GUI Launcher - Environment Setup Assistant
@@ -98,6 +97,8 @@ if not exist "%VENV_DIR%" (
         py -3.11 -m venv "%VENV_DIR%"
     )
 )
+
+"%VENV_DIR%\Scripts\python.exe" -m ensurepip --upgrade >nul 2>&1
 
 :: Sanity check for pip.exe
 if not exist "%VENV_DIR%\Scripts\pip.exe" (

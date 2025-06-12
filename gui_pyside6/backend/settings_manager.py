@@ -18,6 +18,8 @@ DEFAULT_SETTINGS = {
     "full_auto": False,
     "reasoning": "high",
     "flex_mode": False,
+    "quiet": False,
+    "full_context": False,
     "selected_agent": "Python Expert",
     # Optional path to the Codex CLI executable. If empty, the adapter will
     # search the system PATH or use the bundled Node.js script.

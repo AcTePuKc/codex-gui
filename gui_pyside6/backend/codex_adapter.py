@@ -125,6 +125,8 @@ def build_command(
         "auto_edit": "--auto-edit",
         "full_auto": "--full-auto",
         "flex_mode": "--flex-mode",
+        "quiet": "--quiet",
+        "full_context": "--full-context",
     }
 
     for key, flag in flag_map.items():

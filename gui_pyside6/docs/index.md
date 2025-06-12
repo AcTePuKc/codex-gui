@@ -94,6 +94,7 @@ frequency/presence penalties, toggle auto-edit or full-auto modes, set the
 reasoning effort, and enable flex mode.
 
 Enable **Verbose Mode** in the settings dialog to print the final CLI command before each run.
+Quiet mode suppresses progress output, while **Full Context** sends the entire conversation to the CLI using `--full-context`.
 
 ### Session History
 

@@ -308,7 +308,16 @@ class MainWindow(QMainWindow):
         self.stop_btn.setEnabled(True)
         self.run_action.setEnabled(False)
         self.stop_action.setEnabled(True)
-        self.status_bar.showMessage("Running Codex session...")
+        msg = "Running Codex session"
+        modes: list[str] = []
+        if self.settings.get("quiet"):
+            modes.append("quiet")
+        if self.settings.get("full_context"):
+            modes.append("full context")
+        if modes:
+            msg += " (" + ", ".join(modes) + ")"
+        msg += "..."
+        self.status_bar.showMessage(msg)
 
     def append_output(self, text: str) -> None:
         cursor = self.output_view.textCursor()

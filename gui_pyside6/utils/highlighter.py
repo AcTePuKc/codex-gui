@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from PySide6.QtGui import QSyntaxHighlighter, QTextCharFormat, QColor, QRegularExpression
+from PySide6.QtGui import QSyntaxHighlighter, QTextCharFormat, QColor
+from PySide6.QtCore import QRegularExpression
 
 
 class PythonHighlighter(QSyntaxHighlighter):

@@ -2,9 +2,8 @@ from __future__ import annotations
 
 
 from PySide6.QtCore import QThread, Signal, Qt
-from PySide6.QtGui import QFontDatabase
+from PySide6.QtGui import QFontDatabase, QAction
 from PySide6.QtWidgets import (
-    QAction,
     QHBoxLayout,
     QMainWindow,
     QMenuBar,
@@ -121,17 +120,19 @@ class MainWindow(QMainWindow):
         self.agent_list.currentTextChanged.connect(self.on_agent_changed)
         left_layout.addWidget(self.agent_list)
 
+        
+
+        self.agent_desc = QPlainTextEdit()
+        self.agent_desc.setReadOnly(True)
+        left_layout.addWidget(self.agent_desc)
+
         # Show description and status for the initially selected agent
         self.update_agent_description()
         if self.agent_list.currentItem():
             self.status_bar.showMessage(
                 f"Active Agent: {self.agent_list.currentItem().text()}"
             )
-
-        self.agent_desc = QPlainTextEdit()
-        self.agent_desc.setReadOnly(True)
-        left_layout.addWidget(self.agent_desc)
-
+            
         splitter.addWidget(left_panel)
 
         # ----------------------- Center Panel -----------------------

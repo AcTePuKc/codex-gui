@@ -96,13 +96,29 @@ if not exist "%UV_BIN%" (
 )
 
 :: Create venv
+:: Minimum supported Python version is 3.9 (but <3.13)
 if not exist "%VENV_DIR%" (
     echo Virtual environment not found. Creating one...
     if defined UV_BIN (
         echo Using UV: %UV_BIN%
-        "%UV_BIN%" venv "%VENV_DIR%" --python python3.11
+        "%UV_BIN%" venv "%VENV_DIR%" --python python3
     ) else (
-        py -3.11 -m venv "%VENV_DIR%"
+        rem Locate a compatible Python interpreter (prefers the py launcher)
+        set "VENV_PY="
+        where py >nul 2>&1 && set "VENV_PY=py -3"
+        if not defined VENV_PY (
+            where python >nul 2>&1 && set "VENV_PY=python"
+        )
+        if not defined VENV_PY (
+            echo Could not find Python 3.9+ on PATH. Please install Python. 
+            exit /b 1
+        )
+        %VENV_PY% -c "import sys; exit(0 if (3,9)<=sys.version_info<(3,13) else 1)" >nul 2>&1
+        if %ERRORLEVEL% neq 0 (
+            echo Python version must be between 3.9 and 3.12.
+            exit /b 1
+        )
+        %VENV_PY% -m venv "%VENV_DIR%"
     )
 )
 

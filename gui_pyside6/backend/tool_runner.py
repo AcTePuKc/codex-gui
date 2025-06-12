@@ -1,8 +1,12 @@
 import subprocess
 from pathlib import Path
 import sys
+import os
 
-def run_tool_script(script_path: Path, env_path: Path | None = None) -> tuple[int, str, str]:
+
+def run_tool_script(
+    script_path: Path, env_path: Path | None = None
+) -> tuple[int, str, str]:
     """Runs a Python script from the /tools folder."""
     if not script_path.exists():
         raise FileNotFoundError(f"Script not found: {script_path}")

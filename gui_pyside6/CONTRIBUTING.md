@@ -64,6 +64,13 @@ codex-gui/
 │   └── index.md
 ```
 
+## 🔒 Restricted Directories
+
+The `codex-cli/` and `codex-rs/` folders are synchronized mirrors of external
+projects. Avoid modifying files in these directories unless the maintainer
+explicitly requests it. See the repository root [AGENTS.md](../AGENTS.md) for the
+full contribution rules.
+
 ---
 
 ## 🧠 Development Notes

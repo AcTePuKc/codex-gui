@@ -5,6 +5,13 @@ setlocal enabledelayedexpansion
 set "SCRIPT_DIR=%~dp0"
 for %%I in ("%SCRIPT_DIR%..") do set "REPO_ROOT=%%~fI"
 set "REQ_FILE=%SCRIPT_DIR%requirements.uv.in"
+set "SENTINEL_FILE=%SCRIPT_DIR%.deps_installed"
+set "INSTALL_DEPS=1"
+
+python -c "import os,sys; s=r'%SENTINEL_FILE%'; r=r'%REQ_FILE%'; sys.exit(0 if os.path.exists(s) and os.path.getmtime(s) >= os.path.getmtime(r) else 1)" >nul
+if %ERRORLEVEL%==0 (
+    set "INSTALL_DEPS=0"
+)
 
 echo ======================================================
 echo  Codex GUI Launcher - Environment Setup Assistant
@@ -105,9 +112,14 @@ if not exist "%VENV_DIR%" (
 echo Updating pip...
 "%VENV_DIR%\Scripts\python.exe" -m pip install -U pip uv >nul
 
-echo Installing requirements...
-set "VIRTUAL_ENV=%VENV_DIR%"
-"%VENV_DIR%\Scripts\uv.exe" pip install -r "%REQ_FILE%"
+if "%INSTALL_DEPS%"=="1" (
+    echo Installing requirements...
+    set "VIRTUAL_ENV=%VENV_DIR%"
+    "%VENV_DIR%\Scripts\uv.exe" pip install -r "%REQ_FILE%"
+    type nul > "%SENTINEL_FILE%"
+) else (
+    echo Requirements unchanged. Skipping installation.
+)
 
 set "PYTHON_CMD=%VENV_DIR%\Scripts\python.exe"
 

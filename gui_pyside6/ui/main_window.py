@@ -217,6 +217,9 @@ class MainWindow(QMainWindow):
         agent = self.agent_manager.active_agent or {}
 
         self.output_view.clear()
+        cmd = codex_adapter.build_command(prompt, agent, self.settings)
+        if self.settings.get("verbose"):
+            self.append_output("$ " + " ".join(cmd))
         self.worker = CodexWorker(prompt, agent, self.settings)
         self.worker.line_received.connect(self.append_output)
         self.worker.finished.connect(self.session_finished)

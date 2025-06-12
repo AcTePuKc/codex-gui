@@ -88,6 +88,8 @@ Key modules:
 
 All components are modular for future plugins.
 
+Enable **Verbose Mode** in the settings dialog to print the final CLI command before each run.
+
 ---
 
 ## 🗺️ IDE Layout

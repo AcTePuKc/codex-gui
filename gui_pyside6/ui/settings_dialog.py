@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QPushButton,
     QFileDialog,
+    QCheckBox,
     QWidget,
 )
 
@@ -52,6 +53,10 @@ class SettingsDialog(QDialog):
         cli_layout.addWidget(browse_btn)
         layout.addWidget(cli_row)
 
+        self.verbose_check = QCheckBox("Verbose")
+        self.verbose_check.setChecked(bool(settings.get("verbose", False)))
+        layout.addWidget(self.verbose_check)
+
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
@@ -61,6 +66,7 @@ class SettingsDialog(QDialog):
         self.settings["temperature"] = float(self.temp_spin.value())
         self.settings["max_tokens"] = int(self.max_spin.value())
         self.settings["cli_path"] = self.cli_edit.text().strip()
+        self.settings["verbose"] = self.verbose_check.isChecked()
         save_settings(self.settings)
         super().accept()
 
@@ -73,4 +79,3 @@ class SettingsDialog(QDialog):
         )
         if filename:
             self.cli_edit.setText(filename)
-

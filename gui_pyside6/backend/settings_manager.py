@@ -3,9 +3,7 @@ from pathlib import Path
 
 # Build the settings path relative to this module so the GUI can be started
 # from any working directory.
-SETTINGS_PATH = (
-    Path(__file__).resolve().parent.parent / "config" / "settings.json"
-)
+SETTINGS_PATH = Path(__file__).resolve().parent.parent / "config" / "settings.json"
 
 DEFAULT_SETTINGS = {
     "temperature": 0.5,
@@ -13,8 +11,11 @@ DEFAULT_SETTINGS = {
     "selected_agent": "Python Expert",
     # Optional path to the Codex CLI executable. If empty, the adapter will
     # search the system PATH or use the bundled Node.js script.
-    "cli_path": ""
+    "cli_path": "",
+    # Print the final CLI command in the output view when running a session.
+    "verbose": False,
 }
+
 
 def load_settings() -> dict:
     settings = DEFAULT_SETTINGS.copy()
@@ -26,6 +27,7 @@ def load_settings() -> dict:
                 loaded = {}
         settings.update(loaded)
     return settings
+
 
 def save_settings(settings: dict) -> None:
     SETTINGS_PATH.parent.mkdir(parents=True, exist_ok=True)

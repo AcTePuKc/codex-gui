@@ -124,6 +124,7 @@ class MainWindow(QMainWindow):
 
         file_menu = menu_bar.addMenu("File")
         settings_menu = menu_bar.addMenu("Settings")
+        plugins_menu = menu_bar.addMenu("Plugins")
         help_menu = menu_bar.addMenu("Help")
         history_menu = menu_bar.addMenu("History")
 
@@ -139,6 +140,10 @@ class MainWindow(QMainWindow):
         settings_action = QAction("Settings", self)
         settings_action.triggered.connect(self.open_settings_dialog)
         settings_menu.addAction(settings_action)
+
+        plugin_mgr_action = QAction("Plugin Manager", self)
+        plugin_mgr_action.triggered.connect(self.open_plugin_manager)
+        plugins_menu.addAction(plugin_mgr_action)
 
         about_action = QAction("About", self)
         help_menu.addAction(about_action)
@@ -369,6 +374,13 @@ class MainWindow(QMainWindow):
     def open_tools_panel(self) -> None:
         dialog = ToolsPanel(self)
         dialog.exec()
+
+    def open_plugin_manager(self) -> None:
+        from .plugin_manager_dialog import PluginManagerDialog
+
+        dialog = PluginManagerDialog(self)
+        if dialog.exec():
+            load_plugins(self)
 
     def clear_history(self) -> None:
         """Clear the history panel."""

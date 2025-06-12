@@ -91,6 +91,7 @@ def build_command(
     agent: dict,
     settings: dict | None = None,
     view: str | None = None,
+    images: list[str] | None = None,
 ) -> list[str]:
     """Construct the Codex CLI command from agent and settings."""
     settings = settings or {}
@@ -140,6 +141,10 @@ def build_command(
     if view:
         cmd.extend(["--view", view])
 
+    if images:
+        for img in images:
+            cmd.extend(["--image", img])
+
     cmd.append(prompt)
     return cmd
 
@@ -149,6 +154,7 @@ def start_session(
     agent: dict,
     settings: dict | None = None,
     view: str | None = None,
+    images: list[str] | None = None,
 ) -> Iterable[str]:
     """Start a Codex CLI session with the given prompt and agent.
 
@@ -182,7 +188,7 @@ def start_session(
     if _current_process is not None:
         raise RuntimeError("A Codex session is already running")
 
-    cmd = build_command(prompt, agent, settings, view=view)
+    cmd = build_command(prompt, agent, settings, view=view, images=images)
     _terminated = False
     process = subprocess.Popen(
         cmd,

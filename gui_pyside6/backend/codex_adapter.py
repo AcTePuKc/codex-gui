@@ -53,7 +53,9 @@ def ensure_cli_available() -> None:
         ) from exc
 
 
-def start_session(prompt: str, agent: dict) -> Iterable[str]:
+def start_session(
+    prompt: str, agent: dict, settings: dict | None = None
+) -> Iterable[str]:
     """Start a Codex CLI session with the given prompt and agent.
 
     Parameters
@@ -65,6 +67,10 @@ def start_session(prompt: str, agent: dict) -> Iterable[str]:
         ``temperature``, ``max_tokens``, ``top_p``, ``frequency_penalty``,
         ``presence_penalty`` and ``model`` will be converted into their
         respective ``--<flag>`` CLI options when launching the Codex process.
+    settings: dict, optional
+        Runtime settings loaded from ``settings_manager``. ``temperature`` and
+        ``max_tokens`` from this dictionary will be applied as CLI flags if they
+        are not already provided by ``agent``.
 
     Yields
     ------
@@ -84,10 +90,21 @@ def start_session(prompt: str, agent: dict) -> Iterable[str]:
 
     cmd = ["codex"]
 
-    # Map agent dictionary keys to Codex CLI flags
+    settings = settings or {}
+
+    def add_flag(flag: str, value: object | None) -> None:
+        if value is not None:
+            cmd.extend([flag, str(value)])
+
+    # Handle temperature separately to avoid duplicate flags
+    if "temperature" in agent:
+        add_flag("--temperature", agent["temperature"])
+    elif "default_temperature" in agent:
+        add_flag("--temperature", agent["default_temperature"])
+    else:
+        add_flag("--temperature", settings.get("temperature"))
+
     flag_map = {
-        "temperature": "--temperature",
-        "default_temperature": "--temperature",
         "max_tokens": "--max-tokens",
         "top_p": "--top-p",
         "frequency_penalty": "--frequency-penalty",
@@ -97,7 +114,9 @@ def start_session(prompt: str, agent: dict) -> Iterable[str]:
 
     for key, flag in flag_map.items():
         if key in agent:
-            cmd.extend([flag, str(agent[key])])
+            add_flag(flag, agent[key])
+        elif key in settings:
+            add_flag(flag, settings[key])
 
     # Append the user prompt last
     cmd.append(prompt)

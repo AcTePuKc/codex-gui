@@ -12,11 +12,13 @@ This app transforms the CLI-based Codex experience into a rich, extensible deskt
 ## 🔗 Contents
 
 - [Overview](#overview)
+- [Launching](#launching)
 - [Architecture](#architecture)
 - [UI Components](#ui-components)
 - [Agent System](#agent-system)
 - [Tool Execution](#tool-execution)
 - [Plugin/Extension Support](#planned-pluginextension-support)
+- [Custom Agents/Plugins](#custom-agentsplugins)
 - [Roadmap](#roadmap)
 - [FAQ](#faq)
 
@@ -30,6 +32,18 @@ Codex-GUI is designed for developers who want a more interactive experience with
 - Generate and test code live inside a `tools/` sandbox
 - Visualize file context, syntax, and output
 - Manage prompt history and multi-tab sessions
+
+---
+
+## 🚀 Launching {#launching}
+
+1. Install [`uv`](https://github.com/astral-sh/uv).
+2. From the `gui_pyside6` folder run:
+
+```bash
+uv pip install -r requirements.uv.in
+./run_pyside6.sh  # Windows: run_pyside6.bat
+```
 
 ---
 
@@ -109,6 +123,14 @@ Planned plugin architecture will allow:
 - Custom GUI panels via Python modules
 
 Plugins will live in `plugins/` and use a manifest system.
+
+---
+
+## 🛠️ Custom Agents/Plugins {#custom-agentsplugins}
+
+- **Agents**: Drop a JSON file into `resources/agents/`. New files are loaded on startup.
+- **Plugins**: Add a Python module under `plugins/` and list it in `plugins/manifest.json`. Only entries with `"enabled": true` are imported.
+- Some plugins require additional packages. The helper `ensure_backend_installed()` installs these into the active environment or `~/.hybrid_tts/venv` when needed.
 
 ---
 

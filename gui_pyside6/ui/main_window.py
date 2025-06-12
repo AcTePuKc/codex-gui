@@ -26,6 +26,7 @@ from PySide6.QtWidgets import (
 )
 
 from .settings_dialog import SettingsDialog
+from .tools_panel import ToolsPanel
 from ..backend.settings_manager import save_settings
 
 from ..backend import codex_adapter
@@ -211,6 +212,10 @@ class MainWindow(QMainWindow):
         top_bar.addWidget(self.settings_btn)
         self.settings_btn.clicked.connect(self.open_settings_dialog)
 
+        self.tools_btn = QPushButton("Tools")
+        top_bar.addWidget(self.tools_btn)
+        self.tools_btn.clicked.connect(self.open_tools_panel)
+
         images_row = QHBoxLayout()
         center_layout.addLayout(images_row)
         images_row.addWidget(QLabel("Images:"))
@@ -266,7 +271,9 @@ class MainWindow(QMainWindow):
         # Load optional plugins defined in plugins/manifest.json
         load_plugins(self)
 
-    def start_codex(self, prompt: str | None = None, view_path: str | None = None) -> None:
+    def start_codex(
+        self, prompt: str | None = None, view_path: str | None = None
+    ) -> None:
         if self.worker and self.worker.isRunning():
             return
         try:
@@ -275,7 +282,9 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Codex CLI Missing", str(exc))
             self.status_bar.showMessage(str(exc))
             return
-        prompt_text = prompt if prompt is not None else self.prompt_edit.toPlainText().strip()
+        prompt_text = (
+            prompt if prompt is not None else self.prompt_edit.toPlainText().strip()
+        )
         agent_item = self.agent_list.currentItem()
         agent_name = agent_item.text() if agent_item else ""
         self.agent_manager.set_active_agent(agent_name)
@@ -284,7 +293,9 @@ class MainWindow(QMainWindow):
         agent = self.agent_manager.active_agent or {}
 
         self.output_view.clear()
-        image_paths = [self.image_list.item(i).text() for i in range(self.image_list.count())]
+        image_paths = [
+            self.image_list.item(i).text() for i in range(self.image_list.count())
+        ]
         cmd = codex_adapter.build_command(
             prompt_text,
             agent,
@@ -355,6 +366,10 @@ class MainWindow(QMainWindow):
         dialog.exec()
         self.status_bar.showMessage("Settings updated")
 
+    def open_tools_panel(self) -> None:
+        dialog = ToolsPanel(self)
+        dialog.exec()
+
     def clear_history(self) -> None:
         """Clear the history panel."""
         self.history_view.clear()
@@ -367,7 +382,10 @@ class MainWindow(QMainWindow):
             "Image Files (*.png *.jpg *.jpeg *.gif *.bmp)",
         )
         for path in files:
-            if not any(path == self.image_list.item(i).text() for i in range(self.image_list.count())):
+            if not any(
+                path == self.image_list.item(i).text()
+                for i in range(self.image_list.count())
+            ):
                 self.image_list.addItem(path)
 
     def remove_selected_images(self) -> None:

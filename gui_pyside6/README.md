@@ -21,6 +21,7 @@ This project reimagines the Codex CLI as a desktop application, offering:
 - Agent presets with editable configs
 - Live preview of completions
 - Export/import conversations
+- Runtime settings like temperature and max tokens passed as CLI flags
 
 ## 📝 Prerequisites
 

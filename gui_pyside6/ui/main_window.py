@@ -32,14 +32,17 @@ class CodexWorker(QThread):
     line_received = Signal(str)
     finished = Signal()
 
-    def __init__(self, prompt: str, agent: dict) -> None:
+    def __init__(self, prompt: str, agent: dict, settings: dict) -> None:
         super().__init__()
         self.prompt = prompt
         self.agent = agent
+        self.settings = settings
 
     def run(self) -> None:  # type: ignore[override]
         try:
-            for line in codex_adapter.start_session(self.prompt, self.agent):
+            for line in codex_adapter.start_session(
+                self.prompt, self.agent, self.settings
+            ):
                 self.line_received.emit(line)
         except Exception as exc:  # pylint: disable=broad-except
             self.line_received.emit(f"Error: {exc}")
@@ -120,8 +123,6 @@ class MainWindow(QMainWindow):
         self.agent_list.currentTextChanged.connect(self.on_agent_changed)
         left_layout.addWidget(self.agent_list)
 
-        
-
         self.agent_desc = QPlainTextEdit()
         self.agent_desc.setReadOnly(True)
         left_layout.addWidget(self.agent_desc)
@@ -132,7 +133,7 @@ class MainWindow(QMainWindow):
             self.status_bar.showMessage(
                 f"Active Agent: {self.agent_list.currentItem().text()}"
             )
-            
+
         splitter.addWidget(left_panel)
 
         # ----------------------- Center Panel -----------------------
@@ -204,7 +205,7 @@ class MainWindow(QMainWindow):
         agent = self.agent_manager.active_agent or {}
 
         self.output_view.clear()
-        self.worker = CodexWorker(prompt, agent)
+        self.worker = CodexWorker(prompt, agent, self.settings)
         self.worker.line_received.connect(self.append_output)
         self.worker.finished.connect(self.session_finished)
         self.worker.start()
@@ -238,7 +239,7 @@ class MainWindow(QMainWindow):
         save_settings(self.settings)
         self.status_bar.showMessage(f"Active Agent: {name}")
         self.update_agent_description()
-        
+
     def open_settings_dialog(self) -> None:
         dialog = SettingsDialog(self.settings, self)
         dialog.exec()

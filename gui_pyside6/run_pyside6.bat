@@ -128,6 +128,16 @@ set "PYTHON_CMD=%VENV_DIR%\Scripts\python.exe"
 :: STEP 4: Codex CLI Check & Install
 echo.
 echo [Step 4] Checking for Codex CLI...
+
+if "%PKG_MGR%"=="pnpm" (
+    for /f "delims=" %%I in ('pnpm bin -g 2^>nul') do set "PNPM_BIN_DIR=%%I"
+    if defined PNPM_BIN_DIR (
+        if exist "%PNPM_BIN_DIR%\codex.cmd" (
+            set "PATH=%PNPM_BIN_DIR%;%PATH%"
+        )
+    )
+)
+
 where codex >nul 2>&1
 if errorlevel 1 (
     echo Codex CLI not found. Attempting global install using %PKG_MGR%...

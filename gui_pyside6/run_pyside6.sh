@@ -20,12 +20,16 @@ fi
 # Determine package manager (pnpm preferred)
 if command -v pnpm >/dev/null 2>&1; then
     PKG_MGR="pnpm"
+    PNPM_BIN_DIR="$(pnpm bin -g 2>/dev/null || true)"
+    if [ -n "$PNPM_BIN_DIR" ] && [ -x "$PNPM_BIN_DIR/codex" ]; then
+        export PATH="$PNPM_BIN_DIR:$PATH"
+    fi
 else
     PKG_MGR="npm"
 fi
 
-# Ensure the Codex CLI is installed
-if ! codex --help >/dev/null 2>&1; then
+# Ensure the Codex CLI is installed only if missing
+if ! command -v codex >/dev/null 2>&1; then
     echo "Installing @openai/codex globally using $PKG_MGR..."
     $PKG_MGR install -g @openai/codex
 fi

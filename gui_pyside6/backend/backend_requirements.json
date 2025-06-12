@@ -1,0 +1,10 @@
+{
+    "chatterbox": ["chatterbox>=0.0"],
+    "coqui": ["TTS>=0.15.0"],
+    "edge": ["edge-tts>=6.1"],
+    "elevenlabs": ["elevenlabs>=0.2"],
+    "gtts": ["gTTS>=2.3"],
+    "kokoro": ["kokoro>=0.9"],
+    "openaudio-s1-mini": ["openaudio-s1-mini>=0.1"],
+    "piper": ["piper-tts>=0.0.2"]
+}

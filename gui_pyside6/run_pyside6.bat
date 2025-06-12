@@ -98,6 +98,8 @@ if not exist "%VENV_DIR%" (
     )
 )
 
+"%VENV_DIR%\Scripts\python.exe" -m ensurepip --upgrade >nul 2>&1
+
 :: Sanity check for pip.exe
 if not exist "%VENV_DIR%\Scripts\pip.exe" (
     echo [ERROR] pip.exe not found. Virtual environment setup failed.

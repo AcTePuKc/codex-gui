@@ -82,9 +82,9 @@ codex-gui/
 
 ## 🔧 Adding New Agents
 
-1. Copy an existing agent JSON in `resources/agents/`
-2. Update `name`, `description`, and `system_prompt`
-3. Add to the `agents.json` manifest (if we use one) or it will auto-load
+1. Use **Agents → New Agent** in the GUI to launch the editor, or copy an existing JSON in `resources/agents/`.
+2. Update `name`, `description`, and `system_prompt` plus any optional fields.
+3. The editor saves directly under `resources/agents/` and `Agent Manager` reloads the list automatically.
 
 ---
 

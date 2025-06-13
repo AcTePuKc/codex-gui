@@ -510,9 +510,10 @@ class MainWindow(QMainWindow):
             files=file_paths if file_paths else None,
             cwd=cwd_arg,
         )
+        cmd_str = " ".join(str(part) for part in cmd)
         if self.settings.get("verbose"):
-            self.append_output("$ " + " ".join(cmd))
-        logger.info("$ " + " ".join(cmd))
+            self.append_output("$ " + cmd_str)
+        logger.info("$ " + cmd_str)
         self.worker = CodexWorker(
             prompt_text,
             agent,

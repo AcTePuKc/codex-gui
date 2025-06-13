@@ -26,6 +26,14 @@ def test_build_command_with_npx_command():
     assert cmd[-1] == "hi"
 
 
+def test_build_command_with_uv_sandbox():
+    agent = {"temperature": 0.3}
+    settings = {"cli_path": "codex", "use_uv_sandbox": True}
+    cmd = codex_adapter.build_command("hi", agent, settings)
+    assert cmd[:3] == ["uv", "run", "codex"]
+    assert cmd[-1] == "hi"
+
+
 def test_start_codex_handles_command(monkeypatch):
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
     app = QApplication.instance() or QApplication([])

@@ -176,6 +176,8 @@ def build_command(
 
     cli_exe = settings.get("cli_path") or "codex"
     cmd: list[str] = shlex.split(str(cli_exe))
+    if settings.get("use_uv_sandbox"):
+        cmd = ["uv", "run", *cmd]
 
     def add_flag(flag: str, value: object | None) -> None:
         """Safely append a flag and value to the command list."""
@@ -396,6 +398,8 @@ def login(settings: dict | None = None) -> Iterable[str]:
     settings = settings or {}
     cli_exe = settings.get("cli_path") or "codex"
     cmd = shlex.split(str(cli_exe)) + ["--login"]
+    if settings.get("use_uv_sandbox"):
+        cmd = ["uv", "run", *cmd]
     yield from _run_simple_command(cmd)
 
 
@@ -418,4 +422,6 @@ def redeem_free_credits(
         timeout = float(settings.get("redeem_timeout", 30))
     cli_exe = settings.get("cli_path") or "codex"
     cmd = shlex.split(str(cli_exe)) + ["--free"]
+    if settings.get("use_uv_sandbox"):
+        cmd = ["uv", "run", *cmd]
     yield from _run_simple_command(cmd, timeout=timeout)

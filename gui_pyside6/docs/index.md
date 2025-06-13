@@ -47,6 +47,7 @@ Codex-GUI is designed for developers who want a more interactive experience with
 uv pip install -r requirements.uv.in
 ./run_pyside6.sh  # Windows: run_pyside6.bat
 ```
+On Windows the batch script will retry the Codex CLI install using `registry.npmmirror.com` if the first attempt fails.
 
 The launcher creates `~/.hybrid_tts/venv` (Windows: `%USERPROFILE%\.hybrid_tts\venv`)
 on first run if no virtual environment is active and reuses it on subsequent
@@ -177,7 +178,7 @@ When a Codex session is launched these selected files are passed to the CLI via
 
 ## Login & Free Credits
 
-The **Help** menu provides two account actions:
+The **Help** menu provides two account actions (relevant when using the OpenAI provider):
 
 - **Login** – runs `codex --login` and opens your browser so you can authenticate
   with your OpenAI account.

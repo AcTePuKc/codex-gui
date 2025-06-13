@@ -38,6 +38,9 @@ self.full_context_check = QCheckBox("Full Context")
   approval mode with auto-edit/full-auto toggles, reasoning effort and flex mode.
   The available providers are loaded from `resources/providers.json` and any
   modifications through **Manage Providers** are saved to `config/providers.json`.
+  When you select a provider that doesn't yet have an API key or base URL
+  configured, the GUI will prompt for those values so you can quickly switch
+  between multiple providers.
 
 ## Prerequisites
 
@@ -104,6 +107,7 @@ to force a fresh setup or edit the `VENV_DIR` variable near the top of
 4. If you choose the **OpenAI** provider, the GUI prompts for an API key the first time you run a session or refresh models when `OPENAI_API_KEY` is not set. The dialog includes a **Remember key** checkbox which saves the key in `config/api_keys.json` so you don't need to enter it again.
 5. The prompt also offers a **Get API Key** link that opens the OpenAI account page so you can quickly generate a new key.
 6. Open **File -> Settings** and click **Manage API Keys** to update or delete saved entries.
+7. Click **Manage Providers** in the Settings dialog to add custom providers. When you select a provider that doesn't have an API key or base URL configured, the GUI will prompt for them automatically.
 
 To set the key manually for the OpenAI provider:
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from PySide6.QtWidgets import QWidget, QDialog
+from PySide6.QtWidgets import QWidget, QDialog, QInputDialog
 
 from ..ui.api_key_dialog import ApiKeyDialog
 
@@ -73,4 +73,47 @@ def ensure_api_key(provider: str, parent: QWidget | None = None) -> bool:
             if dialog.remember_key():
                 _save_key(provider, key)
             return True
+    return False
+
+
+def ensure_base_url(
+    provider: str,
+    default_url: str | None = None,
+    parent: QWidget | None = None,
+) -> bool:
+    """Ensure a base URL is available for *provider*.
+
+    Checks the ``<PROVIDER>_BASE_URL`` or ``OPENAI_BASE_URL`` environment
+    variables. If neither is set and *default_url* is provided it will be used.
+    Otherwise the user is prompted for a URL. The chosen URL is exported via the
+    provider specific variable and ``OPENAI_BASE_URL`` for the ``openai``
+    provider. Returns ``True`` when a base URL is available or ``False`` if the
+    dialog was cancelled.
+    """
+
+    provider = provider.lower()
+    env_var = f"{provider.upper()}_BASE_URL"
+
+    base_url = (
+        os.getenv(env_var)
+        or os.getenv("OPENAI_BASE_URL")
+        or default_url
+    )
+
+    if base_url:
+        os.environ[env_var] = base_url
+        if provider == "openai":
+            os.environ.setdefault("OPENAI_BASE_URL", base_url)
+        return True
+
+    url, ok = QInputDialog.getText(
+        parent,
+        f"{provider.capitalize()} Base URL",
+        "Enter API base URL:",
+    )
+    if ok and url.strip():
+        os.environ[env_var] = url.strip()
+        if provider == "openai":
+            os.environ.setdefault("OPENAI_BASE_URL", url.strip())
+        return True
     return False

@@ -47,7 +47,7 @@ from ..plugins.loader import load_plugins
 from ..utils.highlighter import PythonHighlighter
 from ..utils.file_scanner import find_source_files
 from ..utils.project_paths import get_common_paths
-from ..utils.api_key import ensure_api_key
+from ..utils.api_key import ensure_api_key, ensure_base_url
 from pathlib import Path
 
 
@@ -474,6 +474,10 @@ class MainWindow(QMainWindow):
         provider = self.settings.get("provider", "openai")
         if provider not in {"local", "custom"}:
             if not ensure_api_key(provider, self):
+                return
+            providers = self.settings.get("providers", {})
+            info = providers.get(provider, {})
+            if not ensure_base_url(provider, info.get("baseURL"), self):
                 return
         prompt_text = (
             prompt if prompt is not None else self.prompt_edit.toPlainText().strip()

@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
-import subprocess
 import os
+import subprocess
+import shutil
+from pathlib import Path
 from collections.abc import Iterable
+
+from .settings_manager import save_settings
 
 
 class CodexError(RuntimeError):
@@ -43,31 +47,51 @@ def ensure_cli_available(settings: dict | None = None) -> None:
     settings = settings or {}
 
     cli_path = settings.get("cli_path")
+    candidates: list[str] = []
+
     if cli_path:
+        candidates.append(cli_path)
+
+    system_cmd = shutil.which("codex")
+    if system_cmd:
+        candidates.append(system_cmd)
+
+    pnpm_home = os.environ.get("PNPM_HOME")
+    search_dirs: list[Path] = []
+    if pnpm_home:
+        search_dirs.append(Path(pnpm_home))
+    if os.name == "nt":
+        user_profile = os.environ.get("USERPROFILE")
+        if user_profile:
+            search_dirs.append(Path(user_profile) / "AppData" / "Local" / "pnpm")
+        exe_name = "codex.cmd"
+    else:
+        search_dirs.append(Path.home() / ".local" / "share" / "pnpm")
+        exe_name = "codex"
+
+    for base in search_dirs:
+        candidate = shutil.which(str(base / exe_name))
+        if candidate:
+            candidates.append(candidate)
+
+    for path in candidates:
         try:
             subprocess.run(
-                [cli_path, "--help"],
+                [path, "--help"],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
                 check=True,
                 text=True,
             )
+            if path != cli_path:
+                settings["cli_path"] = path
+                try:
+                    save_settings(settings)
+                except Exception:  # pylint: disable=broad-except
+                    pass
             return
         except (FileNotFoundError, subprocess.CalledProcessError):
-            pass
-
-    # Try system-wide "codex" first
-    try:
-        subprocess.run(
-            ["codex", "--help"],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            check=True,
-            text=True,
-        )
-        return
-    except (FileNotFoundError, subprocess.CalledProcessError):
-        pass
+            continue
 
     raise FileNotFoundError(
         "Codex CLI is missing. Install it globally with 'npm install -g @openai/codex' "

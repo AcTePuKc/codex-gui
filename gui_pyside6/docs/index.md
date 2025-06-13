@@ -177,6 +177,16 @@ When a Codex session is launched these selected files are passed to the CLI via
 
 ---
 
+## Multi-Provider Management
+
+Open **File -> Settings** and click **Manage Providers** to add or edit API
+endpoints. The provider drop-down lists all entries from
+`config/providers.json`. Selecting a provider without a stored API key or base
+URL will prompt for those values so you can easily switch between different
+Codex-compatible services.
+
+---
+
 ## Login & Free Credits
 
 The **Help** menu provides two account actions (relevant when using the OpenAI provider):

@@ -28,7 +28,7 @@ from urllib import request
 from ..backend.settings_manager import save_settings
 from ..backend.model_manager import get_available_models
 from ..backend import codex_adapter
-from ..utils.api_key import ensure_api_key
+from ..utils.api_key import ensure_api_key, ensure_base_url
 from .api_keys_dialog import ApiKeysDialog
 from .. import logger
 
@@ -241,6 +241,9 @@ class SettingsDialog(QDialog):
                 else:
                     self.model_combo.clear()
                     return
+            if not ensure_base_url(provider, info.get("baseURL"), self):
+                self.model_combo.clear()
+                return
         if provider not in {"local", "custom"}:
             try:
                 models = get_available_models(provider)

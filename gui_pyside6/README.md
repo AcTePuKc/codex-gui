@@ -100,9 +100,10 @@ to force a fresh setup or edit the `VENV_DIR` variable near the top of
 
 1. Run `./run_pyside6.sh` (Windows: `run_pyside6.bat`).
 2. The script installs **Codex CLI** automatically with `npm install -g @openai/codex` if it is not already present.
-3. The GUI prompts for your OpenAI API key the first time you run a session or refresh models if `OPENAI_API_KEY` is not set.
+3. On Windows the installer will retry with `--registry=https://registry.npmmirror.com` if the initial global install fails.
+4. If you choose the **OpenAI** provider, the GUI prompts for an API key the first time you run a session or refresh models when `OPENAI_API_KEY` is not set.
 
-To set the key manually in your shell:
+To set the key manually for the OpenAI provider:
 
 ```bash
 export OPENAI_API_KEY="sk-your-key"
@@ -112,7 +113,7 @@ set OPENAI_API_KEY=sk-your-key
 
 ## Login & Free Credits
 
-Under the **Help** menu you can run two useful commands:
+Under the **Help** menu you can run two useful commands (only needed when using the OpenAI provider):
 
 - **Login** – launches `codex --login` and opens a browser window to authenticate
   your OpenAI account.

@@ -6,6 +6,7 @@ from .tools_panel import ToolsPanel
 from .plugin_manager_dialog import PluginManagerDialog
 from .agent_editor_dialog import AgentEditorDialog
 from .api_key_dialog import ApiKeyDialog
+from .api_keys_dialog import ApiKeysDialog
 
 __all__ = [
     "MainWindow",
@@ -14,4 +15,5 @@ __all__ = [
     "PluginManagerDialog",
     "AgentEditorDialog",
     "ApiKeyDialog",
+    "ApiKeysDialog",
 ]

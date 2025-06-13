@@ -224,7 +224,7 @@ Example plugins included:
 
 - **Syntax Formatter** - adds a *Format* button that runs the Black formatter on the prompt editor.
 - **Agent Logger** - records prompts and responses to `agent_log.txt` when enabled.
-- **TTS Player** - speaks the current prompt using gTTS (disabled by default).
+- **TTS Player** - reads the last response using gTTS (disabled by default).
 
 Some plugins rely on optional TTS backends. These dependencies are installed on demand via `ensure_backend_installed()` which detects your active virtual environment or falls back to `~/.hybrid_tts/venv`.
 

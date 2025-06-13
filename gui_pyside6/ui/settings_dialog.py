@@ -270,21 +270,45 @@ class SettingsDialog(QDialog):
                                 timeout=5,
                                 check=False,
                             )
-                            if result.stderr:
+                            stderr_lower = (result.stderr or "").lower()
+                            unknown_flag = "unknown flag" in stderr_lower
+                            if unknown_flag or result.returncode != 0:
+                                if result.stderr:
+                                    for line in result.stderr.splitlines():
+                                        if "unknown flag" not in line.lower():
+                                            self.debug_console.append_error(line)
+                                cmd = ["ollama", "ps"]
+                                self.debug_console.append_info("$ " + " ".join(cmd))
+                                result = subprocess.run(
+                                    cmd,
+                                    capture_output=True,
+                                    text=True,
+                                    timeout=5,
+                                    check=False,
+                                )
+                                if result.stderr:
+                                    for line in result.stderr.splitlines():
+                                        self.debug_console.append_error(line)
+                                for line in result.stdout.splitlines():
+                                    line = line.strip()
+                                    if not line or line.lower().startswith("name"):
+                                        continue
+                                    self.debug_console.append_info(line)
+                            else:
                                 for line in result.stderr.splitlines():
                                     self.debug_console.append_error(line)
-                            for line in result.stdout.splitlines():
-                                try:
-                                    data = json.loads(line)
-                                except json.JSONDecodeError:
-                                    continue
-                                name = data.get("name")
-                                status = data.get("status")
-                                if name:
-                                    msg = f"Running model: {name}"
-                                    if status:
-                                        msg += f" ({status})"
-                                    self.debug_console.append_info(msg)
+                                for line in result.stdout.splitlines():
+                                    try:
+                                        data = json.loads(line)
+                                    except json.JSONDecodeError:
+                                        continue
+                                    name = data.get("name")
+                                    status = data.get("status")
+                                    if name:
+                                        msg = f"Running model: {name}"
+                                        if status:
+                                            msg += f" ({status})"
+                                        self.debug_console.append_info(msg)
                         except Exception as exc:  # pylint: disable=broad-except
                             self.debug_console.append_error(str(exc))
 

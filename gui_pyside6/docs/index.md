@@ -96,9 +96,9 @@ Key modules:
 
 All components are modular for future plugins.
 
-The settings dialog also lets you pick the provider and model, adjust top-p,
-frequency/presence penalties, toggle auto-edit or full-auto modes, set the
-reasoning effort, and enable flex mode.
+The settings dialog lets you pick the provider and model, adjust generation
+parameters (temperature, top-p, penalties, token limit), choose an approval
+mode, set the reasoning effort, and enable flex mode.
 
 Enable **Verbose Mode** in the settings dialog to print the final CLI command before each run.
 Quiet mode suppresses progress output and reduces logging noise. Full Context passes the entire chat history to the CLI using the `--full-context` flag.

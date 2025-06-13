@@ -530,11 +530,13 @@ class MainWindow(QMainWindow):
         cursor = self.output_view.textCursor()
         cursor.movePosition(QTextCursor.End)
         fmt = QTextCharFormat()
-        if text.startswith("Error:"):
+        is_error = text.startswith("Error:")
+        if is_error:
             fmt.setForeground(QColor("red"))
         cursor.insertText(text + "\n", fmt)
         self.output_view.setTextCursor(cursor)
-        self.history_view.appendPlainText(text)
+        if not is_error:
+            self.history_view.appendPlainText(text)
 
     def handle_log_line(self, level: str, text: str) -> None:
         if level == "error":

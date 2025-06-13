@@ -457,6 +457,10 @@ class MainWindow(QMainWindow):
         self.run_btn.clicked.connect(self.start_codex)
         button_bar.addWidget(self.run_btn)
 
+        self.clear_btn = QPushButton("Clear")
+        self.clear_btn.clicked.connect(self.prompt_edit.clear)
+        button_bar.addWidget(self.clear_btn)
+
         self.stop_btn = QPushButton("Stop")
         self.stop_btn.setEnabled(False)
         self.stop_btn.clicked.connect(self.stop_codex)

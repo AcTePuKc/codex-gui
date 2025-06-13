@@ -797,7 +797,9 @@ class MainWindow(QMainWindow):
         self.worker = CodexCommandWorker(fn)
         self.worker.line_received.connect(self.append_output)
         self.worker.log_line.connect(self.handle_log_line)
-        self.worker.finished.connect(lambda: self._command_finished(done_msg))
+        self.worker.finished.connect(
+            lambda: self._command_finished(done_msg), Qt.QueuedConnection
+        )
         self.run_btn.setEnabled(False)
         self.run_action.setEnabled(False)
         self.stop_btn.setEnabled(False)

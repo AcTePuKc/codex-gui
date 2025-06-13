@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QMenuBar,
     QToolBar,
+    QToolButton,
     QPushButton,
     QVBoxLayout,
     QWidget,
@@ -29,6 +30,7 @@ from PySide6.QtWidgets import (
     QInputDialog,
     QFileDialog,
     QLabel,
+    QStyle,
 )
 
 from .settings_dialog import SettingsDialog
@@ -312,6 +314,11 @@ class MainWindow(QMainWindow):
         top_bar = QHBoxLayout()
         center_layout.addLayout(top_bar)
 
+        self.left_toggle_btn = QToolButton()
+        self.left_toggle_btn.clicked.connect(self.toggle_left_panel)
+        top_bar.addWidget(self.left_toggle_btn)
+        self.update_left_toggle_icon(True)
+
         self.settings_btn = QPushButton("Settings")
         top_bar.addWidget(self.settings_btn)
         self.settings_btn.clicked.connect(self.open_settings_dialog)
@@ -319,6 +326,13 @@ class MainWindow(QMainWindow):
         self.tools_btn = QPushButton("Tools")
         top_bar.addWidget(self.tools_btn)
         self.tools_btn.clicked.connect(self.open_tools_panel)
+
+        top_bar.addStretch()
+
+        self.right_toggle_btn = QToolButton()
+        self.right_toggle_btn.clicked.connect(self.toggle_right_panel)
+        top_bar.addWidget(self.right_toggle_btn)
+        self.update_right_toggle_icon(True)
 
         images_row = QHBoxLayout()
         center_layout.addLayout(images_row)
@@ -394,17 +408,19 @@ class MainWindow(QMainWindow):
 
         splitter.setStretchFactor(1, 1)
 
-        toggle_left_panel_action = QAction("Left Panel", self)
-        toggle_left_panel_action.setCheckable(True)
-        toggle_left_panel_action.setChecked(True)
-        toggle_left_panel_action.toggled.connect(self.left_panel.setVisible)
-        view_menu.addAction(toggle_left_panel_action)
+        self.toggle_left_panel_action = QAction("Left Panel", self)
+        self.toggle_left_panel_action.setCheckable(True)
+        self.toggle_left_panel_action.setChecked(True)
+        self.toggle_left_panel_action.toggled.connect(self.left_panel.setVisible)
+        self.toggle_left_panel_action.toggled.connect(self.update_left_toggle_icon)
+        view_menu.addAction(self.toggle_left_panel_action)
 
-        toggle_right_panel_action = QAction("Right Panel", self)
-        toggle_right_panel_action.setCheckable(True)
-        toggle_right_panel_action.setChecked(True)
-        toggle_right_panel_action.toggled.connect(self.history_view.setVisible)
-        view_menu.addAction(toggle_right_panel_action)
+        self.toggle_right_panel_action = QAction("Right Panel", self)
+        self.toggle_right_panel_action.setCheckable(True)
+        self.toggle_right_panel_action.setChecked(True)
+        self.toggle_right_panel_action.toggled.connect(self.history_view.setVisible)
+        self.toggle_right_panel_action.toggled.connect(self.update_right_toggle_icon)
+        view_menu.addAction(self.toggle_right_panel_action)
 
         # Load optional plugins defined in plugins/manifest.json
         load_plugins(self)
@@ -543,6 +559,32 @@ class MainWindow(QMainWindow):
         dialog = PluginManagerDialog(self)
         if dialog.exec():
             load_plugins(self)
+
+    def toggle_left_panel(self) -> None:
+        visible = not self.left_panel.isVisible()
+        self.left_panel.setVisible(visible)
+        self.toggle_left_panel_action.setChecked(visible)
+
+    def toggle_right_panel(self) -> None:
+        visible = not self.history_view.isVisible()
+        self.history_view.setVisible(visible)
+        self.toggle_right_panel_action.setChecked(visible)
+
+    def update_left_toggle_icon(self, visible: bool) -> None:
+        icon = (
+            self.style().standardIcon(QStyle.SP_ArrowLeft)
+            if visible
+            else self.style().standardIcon(QStyle.SP_ArrowRight)
+        )
+        self.left_toggle_btn.setIcon(icon)
+
+    def update_right_toggle_icon(self, visible: bool) -> None:
+        icon = (
+            self.style().standardIcon(QStyle.SP_ArrowRight)
+            if visible
+            else self.style().standardIcon(QStyle.SP_ArrowLeft)
+        )
+        self.right_toggle_btn.setIcon(icon)
 
     def clear_history(self) -> None:
         """Clear the history panel."""

@@ -164,6 +164,10 @@ class CodexCommandWorker(QThread):
             for line in self.run_fn():
                 self.line_received.emit(line)
                 self.log_line.emit("info", line)
+        except codex_adapter.CodexTimeout as exc:
+            msg = str(exc)
+            self.line_received.emit(f"Error: {msg}")
+            self.log_line.emit("error", msg)
         except codex_adapter.CodexError as exc:
             for err_line in exc.stderr.strip().splitlines():
                 self.line_received.emit(f"Error: {err_line}")

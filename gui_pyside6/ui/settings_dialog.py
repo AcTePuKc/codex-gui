@@ -157,12 +157,15 @@ class SettingsDialog(QDialog):
         self.full_context_check.setChecked(bool(settings.get("full_context", False)))
         layout.addWidget(self.full_context_check)
 
-        layout.addWidget(QLabel("Codex CLI Path:"))
+        layout.addWidget(QLabel("Codex CLI Command:"))
         cli_row = QWidget()
         cli_layout = QHBoxLayout(cli_row)
         cli_layout.setContentsMargins(0, 0, 0, 0)
         self.cli_edit = QLineEdit()
         self.cli_edit.setText(settings.get("cli_path", ""))
+        self.cli_edit.setToolTip(
+            "Full command allowed, e.g. 'npx codex --no-update-notifier'"
+        )
         browse_btn = QPushButton("Browse")
         browse_btn.clicked.connect(self.browse_cli)
         check_btn = QPushButton("Check")
@@ -448,7 +451,7 @@ class SettingsDialog(QDialog):
             self.cli_edit.setText(filename)
 
     def check_cli(self) -> None:
-        """Verify the Codex CLI path and log search details."""
+        """Verify the Codex CLI command and log search details."""
 
         def log_fn(text: str, level: str = "info") -> None:
             if level == "error":

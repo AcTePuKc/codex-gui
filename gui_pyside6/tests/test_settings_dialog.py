@@ -30,3 +30,16 @@ def test_load_models_parses_json(monkeypatch):
     dialog = SettingsDialog(settings)
     models = [dialog.model_combo.itemText(i) for i in range(dialog.model_combo.count())]
     assert "test-model" in models
+
+
+def test_cli_command_with_spaces_preserved(monkeypatch):
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+    settings = {}
+
+    dialog = SettingsDialog(settings)
+    command = "npx codex --no-update-notifier"
+    dialog.cli_edit.setText(command)
+    dialog.accept()
+
+    assert settings["cli_path"] == command

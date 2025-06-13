@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 
-from PySide6.QtCore import QThread, Signal, Qt, QStringListModel
+from PySide6.QtCore import QThread, Signal, Qt, QStringListModel, QSize, QUrl
 from PySide6.QtGui import (
     QFontDatabase,
     QAction,
@@ -10,6 +10,9 @@ from PySide6.QtGui import (
     QTextCursor,
     QKeySequence,
     QShortcut,
+    QIcon,
+    QPixmap,
+    QDesktopServices,
 )
 from PySide6.QtWidgets import (
     QHBoxLayout,
@@ -58,6 +61,28 @@ class ImageDropList(QListWidget):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setAcceptDrops(True)
+        self.setIconSize(QSize(48, 48))
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(self._show_menu)
+
+    def add_image(self, path: str) -> None:
+        """Add an image with a preview icon."""
+        if any(
+            path == self.item(i).data(Qt.UserRole) for i in range(self.count())
+        ):
+            return
+        pixmap = QPixmap(path)
+        item = QListWidgetItem(Path(path).name)
+        if not pixmap.isNull():
+            icon = QIcon(
+                pixmap.scaled(
+                    self.iconSize(), Qt.KeepAspectRatio, Qt.SmoothTransformation
+                )
+            )
+            item.setIcon(icon)
+        item.setData(Qt.UserRole, path)
+        item.setToolTip(path)
+        self.addItem(item)
 
     def dragEnterEvent(self, event) -> None:  # type: ignore[override]
         if event.mimeData().hasUrls():
@@ -76,10 +101,23 @@ class ImageDropList(QListWidget):
             for url in event.mimeData().urls():
                 path = url.toLocalFile()
                 if path:
-                    self.addItem(path)
+                    self.add_image(path)
             event.acceptProposedAction()
         else:
             super().dropEvent(event)
+
+    def _show_menu(self, pos) -> None:
+        item = self.itemAt(pos)
+        if not item:
+            return
+        menu = QMenu(self)
+        open_act = menu.addAction("Open")
+        remove_act = menu.addAction("Remove")
+        action = menu.exec(self.mapToGlobal(pos))
+        if action == open_act:
+            QDesktopServices.openUrl(QUrl.fromLocalFile(item.data(Qt.UserRole)))
+        elif action == remove_act:
+            self.takeItem(self.row(item))
 
 
 class PromptEdit(QPlainTextEdit):
@@ -358,7 +396,7 @@ class MainWindow(QMainWindow):
         center_layout.addLayout(images_row)
         images_row.addWidget(QLabel("Images:"))
         self.image_list = ImageDropList()
-        self.image_list.setMaximumHeight(60)
+        self.image_list.setMaximumHeight(80)
         images_row.addWidget(self.image_list)
         self.add_image_btn = QPushButton("Add Image")
         self.add_image_btn.clicked.connect(self.browse_images)
@@ -496,7 +534,8 @@ class MainWindow(QMainWindow):
 
         self.output_view.clear()
         image_paths = [
-            self.image_list.item(i).text() for i in range(self.image_list.count())
+            self.image_list.item(i).data(Qt.UserRole)
+            for i in range(self.image_list.count())
         ]
         if self.settings.get("auto_scan_files", True) and self.file_list.count() == 0:
             for path in self.suggest_source_files():
@@ -680,11 +719,7 @@ class MainWindow(QMainWindow):
             "Image Files (*.png *.jpg *.jpeg *.gif *.bmp)",
         )
         for path in files:
-            if not any(
-                path == self.image_list.item(i).text()
-                for i in range(self.image_list.count())
-            ):
-                self.image_list.addItem(path)
+            self.image_list.add_image(path)
 
     def browse_files(self) -> None:
         files, _ = QFileDialog.getOpenFileNames(

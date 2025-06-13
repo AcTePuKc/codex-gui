@@ -1,6 +1,14 @@
 from __future__ import annotations
 
-from PySide6.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton
+from PySide6.QtGui import QDesktopServices
+from PySide6.QtCore import QUrl
+from PySide6.QtWidgets import (
+    QDialog,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QVBoxLayout,
+)
 
 
 class ApiKeyDialog(QDialog):
@@ -16,6 +24,14 @@ class ApiKeyDialog(QDialog):
         self.key_edit = QLineEdit()
         self.key_edit.setEchoMode(QLineEdit.Password)
         layout.addWidget(self.key_edit)
+
+        self.get_key_button = QPushButton("Get API Key")
+        self.get_key_button.clicked.connect(
+            lambda: QDesktopServices.openUrl(
+                QUrl("https://platform.openai.com/account/api-keys")
+            )
+        )
+        layout.addWidget(self.get_key_button)
 
         button_layout = QVBoxLayout()
         self.ok_button = QPushButton("OK")

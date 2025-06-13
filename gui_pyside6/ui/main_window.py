@@ -24,6 +24,9 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QSplitter,
     QListWidget,
+    QListWidgetItem,
+    QMenu,
+    QInputDialog,
     QFileDialog,
     QLabel,
 )
@@ -31,7 +34,7 @@ from PySide6.QtWidgets import (
 from .settings_dialog import SettingsDialog
 from .tools_panel import ToolsPanel
 from .debug_console import DebugConsole
-from .agent_editor_dialog import AgentEditorDialog
+from .agent_editor_dialog import AgentEditorDialog, AgentJsonDialog
 from ..backend.settings_manager import save_settings
 
 from ..backend import codex_adapter
@@ -212,8 +215,11 @@ class MainWindow(QMainWindow):
         new_agent_action.triggered.connect(self.create_agent)
         edit_agent_action = QAction("Edit Agent", self)
         edit_agent_action.triggered.connect(self.edit_agent)
+        edit_json_action = QAction("Edit Agent JSON", self)
+        edit_json_action.triggered.connect(self.edit_agent_json)
         agents_menu.addAction(new_agent_action)
         agents_menu.addAction(edit_agent_action)
+        agents_menu.addAction(edit_json_action)
 
         about_action = QAction("About", self)
         help_menu.addAction(about_action)
@@ -268,7 +274,12 @@ class MainWindow(QMainWindow):
         left_layout = QVBoxLayout(self.left_panel)
 
         self.agent_list = QListWidget()
-        self.agent_list.addItems([a.get("name", "") for a in agent_manager.agents])
+        for a in agent_manager.agents:
+            item = QListWidgetItem(a.get("name", ""))
+            item.setToolTip(a.get("description", ""))
+            self.agent_list.addItem(item)
+        self.agent_list.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.agent_list.customContextMenuRequested.connect(self.show_agent_menu)
         current_name = self.settings.get("selected_agent", "")
         matches = self.agent_list.findItems(current_name, Qt.MatchExactly)
         if matches:
@@ -533,7 +544,10 @@ class MainWindow(QMainWindow):
 
     def refresh_agent_list(self) -> None:
         self.agent_list.clear()
-        self.agent_list.addItems([a.get("name", "") for a in self.agent_manager.agents])
+        for agent in self.agent_manager.agents:
+            item = QListWidgetItem(agent.get("name", ""))
+            item.setToolTip(agent.get("description", ""))
+            self.agent_list.addItem(item)
 
     def browse_images(self) -> None:
         files, _ = QFileDialog.getOpenFileNames(
@@ -621,6 +635,90 @@ class MainWindow(QMainWindow):
             if items:
                 self.agent_list.setCurrentItem(items[0])
             self.update_agent_description()
+
+    def edit_agent_json(self) -> None:
+        agent = self.agent_manager.active_agent
+        if not agent:
+            QMessageBox.information(self, "No Agent", "Please select an agent to edit.")
+            return
+        dialog = AgentJsonDialog(agent, parent=self)
+        if dialog.exec() and dialog.modified:
+            self.agent_manager.reload()
+            self.refresh_agent_list()
+            items = self.agent_list.findItems(agent.get("name", ""), Qt.MatchExactly)
+            if items:
+                self.agent_list.setCurrentItem(items[0])
+            self.update_agent_description()
+
+    def show_agent_menu(self, pos) -> None:
+        item = self.agent_list.itemAt(pos)
+        if not item:
+            return
+        self.agent_list.setCurrentItem(item)
+        agent = self.agent_manager.active_agent
+        menu = QMenu(self)
+        edit_act = menu.addAction("Edit")
+        json_act = menu.addAction("Edit JSON")
+        rename_act = menu.addAction("Rename")
+        delete_act = menu.addAction("Delete")
+        if agent and self.agent_manager.is_default(agent):
+            rename_act.setEnabled(False)
+            delete_act.setEnabled(False)
+        action = menu.exec(self.agent_list.mapToGlobal(pos))
+        if action == edit_act:
+            self.edit_agent()
+        elif action == json_act:
+            self.edit_agent_json()
+        elif action == rename_act:
+            self.rename_agent()
+        elif action == delete_act:
+            self.delete_agent()
+
+    def rename_agent(self) -> None:
+        agent = self.agent_manager.active_agent
+        if not agent:
+            return
+        if self.agent_manager.is_default(agent):
+            QMessageBox.information(self, "Default Agent", "Default presets cannot be renamed.")
+            return
+        new_name, ok = QInputDialog.getText(self, "Rename Agent", "New name:", text=agent.get("name", ""))
+        if not ok or not new_name:
+            return
+        new_path = Path(agent.get("_path", "")).with_name(new_name.lower().replace(" ", "_") + ".json")
+        try:
+            self.agent_manager.rename_agent(agent, new_path)
+        except Exception as exc:  # pylint: disable=broad-except
+            QMessageBox.warning(self, "Rename Failed", str(exc))
+            return
+        self.agent_manager.reload()
+        self.refresh_agent_list()
+        items = self.agent_list.findItems(new_name, Qt.MatchExactly)
+        if items:
+            self.agent_list.setCurrentItem(items[0])
+        self.update_agent_description()
+
+    def delete_agent(self) -> None:
+        agent = self.agent_manager.active_agent
+        if not agent:
+            return
+        if self.agent_manager.is_default(agent):
+            QMessageBox.information(self, "Default Agent", "Default presets cannot be deleted.")
+            return
+        if QMessageBox.question(
+            self,
+            "Delete Agent",
+            f"Delete '{agent.get('name', '')}'?",
+        ) != QMessageBox.Yes:
+            return
+        try:
+            self.agent_manager.delete_agent(agent)
+        except Exception as exc:  # pylint: disable=broad-except
+            QMessageBox.warning(self, "Delete Failed", str(exc))
+            return
+        self.refresh_agent_list()
+        if self.agent_list.count() > 0:
+            self.agent_list.setCurrentRow(0)
+            self.on_agent_changed(self.agent_list.currentItem().text())
 
     # ------------------------------------------------------------------
     # Session history helpers

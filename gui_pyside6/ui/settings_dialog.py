@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QScrollArea,
     QWidget,
+    QMessageBox,
 )
 
 import json
@@ -26,6 +27,7 @@ from urllib import request
 
 from ..backend.settings_manager import save_settings
 from ..backend.model_manager import get_available_models
+from ..backend import codex_adapter
 from ..utils.api_key import ensure_api_key
 
 
@@ -149,8 +151,11 @@ class SettingsDialog(QDialog):
         self.cli_edit.setText(settings.get("cli_path", ""))
         browse_btn = QPushButton("Browse")
         browse_btn.clicked.connect(self.browse_cli)
+        check_btn = QPushButton("Check")
+        check_btn.clicked.connect(self.check_cli)
         cli_layout.addWidget(self.cli_edit)
         cli_layout.addWidget(browse_btn)
+        cli_layout.addWidget(check_btn)
         layout.addWidget(cli_row)
 
         self.verbose_check = QCheckBox("Verbose")
@@ -385,6 +390,29 @@ class SettingsDialog(QDialog):
         )
         if filename:
             self.cli_edit.setText(filename)
+
+    def check_cli(self) -> None:
+        """Verify the Codex CLI path and log search details."""
+        def log_fn(text: str, level: str = "info") -> None:
+            if not self.debug_console:
+                return
+            if level == "error":
+                self.debug_console.append_error(text)
+            else:
+                self.debug_console.append_info(text)
+
+        tmp_settings = self.settings.copy()
+        tmp_settings["cli_path"] = self.cli_edit.text().strip()
+        try:
+            codex_adapter.ensure_cli_available(tmp_settings, log_fn=log_fn)
+        except FileNotFoundError as exc:
+            if self.debug_console:
+                self.debug_console.append_error(str(exc))
+            QMessageBox.warning(self, "Codex CLI Missing", str(exc))
+            return
+
+        self.cli_edit.setText(tmp_settings.get("cli_path", ""))
+        QMessageBox.information(self, "Codex CLI Found", f"Using CLI at: {tmp_settings.get('cli_path', '')}")
 
     def browse_project_doc(self) -> None:
         """Prompt the user to select an additional project doc file."""

@@ -92,21 +92,18 @@ class SettingsDialog(QDialog):
         provider_layout = QHBoxLayout(provider_row)
         provider_layout.setContentsMargins(0, 0, 0, 0)
         self.provider_combo = QComboBox()
-        self.provider_combo.addItem("OpenAI (Codex)", "openai")
-        self.provider_combo.addItem("Local", "local")
-        self.provider_combo.addItem("Custom", "custom")
         self.manage_keys_btn = QPushButton("Manage API Keys")
-        current_provider = settings.get("provider", "openai")
-        index = self.provider_combo.findData(current_provider)
-        if index >= 0:
-            self.provider_combo.setCurrentIndex(index)
+        self.manage_providers_btn = QPushButton("Manage Providers")
         provider_layout.addWidget(self.provider_combo)
         provider_layout.addWidget(self.manage_keys_btn)
+        provider_layout.addWidget(self.manage_providers_btn)
+        self.refresh_providers()
         layout.addWidget(provider_row)
         self.provider_combo.currentIndexChanged.connect(
             lambda: self.load_models(prompt_for_key=True)
         )
         self.manage_keys_btn.clicked.connect(self.manage_api_keys)
+        self.manage_providers_btn.clicked.connect(self.manage_providers)
 
         layout.addWidget(QLabel("Model:"))
         model_row = QWidget()
@@ -224,9 +221,11 @@ class SettingsDialog(QDialog):
 
     def load_models(self, prompt_for_key: bool = False) -> None:
         """Populate the model combo box based on the selected provider."""
+        providers = self.settings.get("providers", {})
         provider = self.provider_combo.currentData() or "openai"
-        if provider not in {"local", "custom"}:
-            env_var = f"{provider.upper()}_API_KEY"
+        info = providers.get(provider, {})
+        env_var = info.get("envKey") or f"{provider.upper()}_API_KEY"
+        if provider not in {"local", "custom"} and env_var:
             has_key = os.getenv(env_var) or os.getenv("OPENAI_API_KEY")
             if not has_key:
                 if prompt_for_key:
@@ -236,7 +235,7 @@ class SettingsDialog(QDialog):
                 else:
                     self.model_combo.clear()
                     return
-        if provider == "openai":
+        if provider not in {"local", "custom"}:
             try:
                 models = get_available_models(provider)
             except Exception:
@@ -471,3 +470,25 @@ class SettingsDialog(QDialog):
     def manage_api_keys(self) -> None:
         """Open the API key manager dialog."""
         ApiKeysDialog(self).exec()
+
+    def manage_providers(self) -> None:
+        """Open the provider manager dialog."""
+        from .provider_manager_dialog import ProviderManagerDialog
+
+        dialog = ProviderManagerDialog(self.settings.get("providers", {}), self)
+        if dialog.exec():
+            save_settings(self.settings)
+            self.refresh_providers()
+            self.load_models(prompt_for_key=True)
+
+    def refresh_providers(self) -> None:
+        """Populate the provider combo from settings."""
+        self.provider_combo.clear()
+        providers = self.settings.get("providers", {})
+        for key, info in sorted(providers.items()):
+            name = info.get("name", key)
+            self.provider_combo.addItem(name, key)
+        current = self.settings.get("provider", "openai")
+        index = self.provider_combo.findData(current)
+        if index >= 0:
+            self.provider_combo.setCurrentIndex(index)

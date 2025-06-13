@@ -12,6 +12,7 @@ requirements.lock.txt
 settings.json
 manifest.json
 config/api_keys.json
+config/providers.json
 
 
 # Tools

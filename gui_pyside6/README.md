@@ -35,7 +35,9 @@ self.quiet_check = QCheckBox("Quiet Mode")
 self.full_context_check = QCheckBox("Full Context")
 ```
 - Additional options for provider, model, top-p, frequency and presence penalties,
-  approval mode with auto-edit/full-auto toggles, reasoning effort and flex mode
+  approval mode with auto-edit/full-auto toggles, reasoning effort and flex mode.
+  The available providers are loaded from `resources/providers.json` and any
+  modifications through **Manage Providers** are saved to `config/providers.json`.
 
 ## Prerequisites
 

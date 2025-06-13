@@ -180,10 +180,12 @@ When a Codex session is launched these selected files are passed to the CLI via
 
 The **Help** menu provides two account actions (relevant when using the OpenAI provider):
 
-- **Login** – runs `codex --login` and opens your browser so you can authenticate
+- **Login** - runs `codex --login` and opens your browser so you can authenticate
   with your OpenAI account.
-- **Redeem Free Credits** – runs `codex --free` to claim any promotional credits
+- **Redeem Free Credits** - runs `codex --free` to claim any promotional credits
   tied to your account.
+
+The API key dialog now includes a **Get API Key** link that opens your OpenAI account page.
 
 Command output appears in the main panel and is also logged in the Debug Console.
 
@@ -192,7 +194,7 @@ Command output appears in the main panel and is also logged in the Debug Console
 ## Debug Console
 
 The Debug Console is a dockable window that shows stdout and stderr from Codex
-and tools. Toggle it from **View → Debug Console**. Use the **Info** and
+and tools. Toggle it from **View -> Debug Console**. Use the **Info** and
 **Errors** checkboxes to filter messages and click **Clear** to wipe the log.
 
 ---
@@ -227,7 +229,7 @@ Current examples:
 
 ## Plugin Manager
 
-Open **Plugins → Plugin Manager** to enable or disable optional plugins listed in `plugins/manifest.json`. Each entry appears with a checkbox. Click **Save** to persist your choices and reload the plugins immediately.
+Open **Plugins -> Plugin Manager** to enable or disable optional plugins listed in `plugins/manifest.json`. Each entry appears with a checkbox. Click **Save** to persist your choices and reload the plugins immediately.
 
 ---
 

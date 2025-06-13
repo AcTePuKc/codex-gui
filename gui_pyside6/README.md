@@ -100,6 +100,7 @@ to force a fresh setup or edit the `VENV_DIR` variable near the top of
 2. The script installs **Codex CLI** automatically with `npm install -g @openai/codex` if it is not already present.
 3. On Windows the installer will retry with `--registry=https://registry.npmmirror.com` if the initial global install fails.
 4. If you choose the **OpenAI** provider, the GUI prompts for an API key the first time you run a session or refresh models when `OPENAI_API_KEY` is not set.
+5. The dialog now offers a **Get API Key** link that opens the OpenAI account page so you can quickly generate a new key.
 
 To set the key manually for the OpenAI provider:
 
@@ -117,6 +118,8 @@ Under the **Help** menu you can run two useful commands (only needed when using 
   your OpenAI account.
 - **Redeem Free Credits** - runs `codex --free` to claim any promotional credits
   that may be available.
+
+The API key prompt also provides a **Get API Key** link that opens your account page in a browser.
 
 The command output is shown in the main panel and logged in the Debug Console.
 

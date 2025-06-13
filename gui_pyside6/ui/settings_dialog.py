@@ -578,12 +578,20 @@ class SettingsDialog(QDialog):
 
     def refresh_providers(self) -> None:
         """Populate the provider combo from settings."""
+        prev = self.provider_combo.currentData()
+
+        self.provider_combo.blockSignals(True)
         self.provider_combo.clear()
         providers = self.settings.get("providers", {})
         for key, info in sorted(providers.items()):
             name = info.get("name", key)
             self.provider_combo.addItem(name, key)
-        current = self.settings.get("provider", "openai")
-        index = self.provider_combo.findData(current)
+
+        selected = prev if prev is not None else self.settings.get("provider", "openai")
+        index = self.provider_combo.findData(selected)
         if index >= 0:
             self.provider_combo.setCurrentIndex(index)
+        self.provider_combo.blockSignals(False)
+
+        if prev != self.provider_combo.currentData():
+            self.load_models(prompt_for_key=True)

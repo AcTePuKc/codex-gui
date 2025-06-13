@@ -9,6 +9,7 @@ except Exception as exc:  # pylint: disable=broad-except
     pytest.skip(f"PySide6 not available: {exc}", allow_module_level=True)
 
 from gui_pyside6.ui.settings_dialog import SettingsDialog
+from gui_pyside6.backend import model_manager
 
 
 def test_load_models_parses_json(monkeypatch):
@@ -100,3 +101,44 @@ def test_ollama_ps_json_flag_cached(monkeypatch):
     ps_cmds = [c for c in calls if c[:2] == ["ollama", "ps"]]
     assert ps_cmds[0] == ["ollama", "ps", "--json"]
     assert ps_cmds[1] == ["ollama", "ps"]
+
+
+def test_provider_selection_persists_and_loads_models(monkeypatch):
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+
+    settings = {
+        "provider": "openai",
+        "providers": {
+            "openai": {"name": "OpenAI"},
+            "ollama": {"name": "Ollama"},
+        },
+    }
+
+    monkeypatch.setattr(model_manager, "get_available_models", lambda p: ["openai-model"])
+    monkeypatch.setattr(shutil, "which", lambda x: "/usr/bin/ollama")
+
+    def fake_run(cmd, capture_output=True, text=True, timeout=5, check=False):
+        if cmd[:2] in (["ollama", "list"], ["ollama", "ls"]):
+            stdout = '{"models": [{"name": "ollama-model"}]}'
+            return subprocess.CompletedProcess(cmd, 0, stdout=stdout, stderr="")
+        if cmd[:2] == ["ollama", "ps"]:
+            return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    dialog = SettingsDialog(settings)
+    assert dialog.provider_combo.currentData() == "openai"
+    assert dialog.model_combo.findText("openai-model") >= 0
+
+    index = dialog.provider_combo.findData("ollama")
+    dialog.provider_combo.setCurrentIndex(index)
+
+    assert dialog.provider_combo.currentData() == "ollama"
+    assert dialog.model_combo.findText("ollama-model") >= 0
+
+    dialog.refresh_providers()
+
+    assert dialog.provider_combo.currentData() == "ollama"
+    assert dialog.model_combo.findText("ollama-model") >= 0

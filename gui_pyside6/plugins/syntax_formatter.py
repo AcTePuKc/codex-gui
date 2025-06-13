@@ -18,17 +18,25 @@ def _ensure_black() -> None:
         subprocess.check_call([sys.executable, "-m", "pip", "install", "black"])
 
 
-def _format_text(text: str) -> str:
+def _format_text(text: str) -> tuple[str | None, str | None]:
     """Format the given Python code using ``black``."""
     with tempfile.NamedTemporaryFile("w+", delete=False, suffix=".py") as tmp:
         tmp.write(text)
         tmp.flush()
         tmp_path = Path(tmp.name)
 
-    subprocess.run([sys.executable, "-m", "black", "-q", str(tmp_path)], check=False)
+    result = subprocess.run(
+        [sys.executable, "-m", "black", "-q", str(tmp_path)],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        error = result.stderr.strip() or "Formatting failed"
+        tmp_path.unlink(missing_ok=True)
+        return None, error
     formatted = tmp_path.read_text(encoding="utf-8")
     tmp_path.unlink(missing_ok=True)
-    return formatted
+    return formatted, None
 
 
 def register(window) -> None:
@@ -43,10 +51,14 @@ def register(window) -> None:
         if not original.strip():
             return
         try:
-            formatted = _format_text(original)
+            formatted, error = _format_text(original)
         except Exception as exc:  # pylint: disable=broad-except
             window.output_view.append(f"Format error: {exc}")
             return
-        window.prompt_edit.setPlainText(formatted)
+        if error:
+            window.output_view.append(f"Format error: {error}")
+            return
+        if formatted is not None:
+            window.prompt_edit.setPlainText(formatted)
 
     button.clicked.connect(on_click)

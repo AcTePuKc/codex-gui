@@ -168,3 +168,16 @@ def test_api_key_dialog_get_key_button_visibility():
     ollama_dialog = ApiKeyDialog("ollama")
     assert not hasattr(ollama_dialog, "get_key_button")
 
+
+def test_theme_selection_saved():
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+
+    settings = {}
+    dialog = SettingsDialog(settings)
+    index = dialog.theme_combo.findText("Dark")
+    dialog.theme_combo.setCurrentIndex(index)
+    dialog.accept()
+
+    assert settings["theme"] == "Dark"
+

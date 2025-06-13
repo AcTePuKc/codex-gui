@@ -51,6 +51,32 @@ If the command fails, install dependencies and build the CLI using `pnpm install
 
 Codex CLI is a Node/TypeScript project that must be built once with `pnpm build` before it can be used. The GUI relies on this built CLI.
 
+### Package manager detection
+
+The launch scripts automatically choose `pnpm` when it is available and fall back
+to `npm` otherwise. On Windows you can see this logic in
+`run_pyside6.bat`:
+
+```bat
+where pnpm >nul 2>&1
+if %errorlevel%==0 (
+    set "PKG_MGR=pnpm"
+    echo pnpm found.
+) else (
+    echo pnpm not found. Checking for npm fallback...
+    where npm >nul 2>&1
+    if %errorlevel%==0 (
+        set "PKG_MGR=npm"
+        echo npm found.
+        echo   Tip: pnpm is faster. You can install it via: npm install -g pnpm
+    )
+)
+```
+
+If you wish to use `pnpm` globally, run `pnpm setup` (or
+`corepack enable && corepack prepare pnpm@latest --activate` on Node.js 22+) so
+the command is available on your `PATH`.
+
 ## Installation
 
 ```bash

@@ -5,6 +5,7 @@ from PySide6.QtCore import QUrl
 from PySide6.QtWidgets import (
     QDialog,
     QLabel,
+    QCheckBox,
     QLineEdit,
     QPushButton,
     QVBoxLayout,
@@ -24,6 +25,9 @@ class ApiKeyDialog(QDialog):
         self.key_edit = QLineEdit()
         self.key_edit.setEchoMode(QLineEdit.Password)
         layout.addWidget(self.key_edit)
+
+        self.remember_check = QCheckBox("Remember key")
+        layout.addWidget(self.remember_check)
 
         self.get_key_button = QPushButton("Get API Key")
         self.get_key_button.clicked.connect(
@@ -46,3 +50,7 @@ class ApiKeyDialog(QDialog):
     def api_key(self) -> str:
         """Return the entered API key."""
         return self.key_edit.text().strip()
+
+    def remember_key(self) -> bool:
+        """Return ``True`` if the remember checkbox is checked."""
+        return self.remember_check.isChecked()

@@ -99,8 +99,8 @@ to force a fresh setup or edit the `VENV_DIR` variable near the top of
 1. Run `./run.sh` (Windows: `run.bat`).
 2. The script installs **Codex CLI** automatically with `npm install -g @openai/codex` if it is not already present.
 3. On Windows the installer will retry with `--registry=https://registry.npmmirror.com` if the initial global install fails.
-4. If you choose the **OpenAI** provider, the GUI prompts for an API key the first time you run a session or refresh models when `OPENAI_API_KEY` is not set.
-5. The dialog now offers a **Get API Key** link that opens the OpenAI account page so you can quickly generate a new key.
+4. If you choose the **OpenAI** provider, the GUI prompts for an API key the first time you run a session or refresh models when `OPENAI_API_KEY` is not set. The dialog includes a **Remember key** checkbox which saves the key in `config/api_keys.json` so you don't need to enter it again.
+5. The prompt also offers a **Get API Key** link that opens the OpenAI account page so you can quickly generate a new key.
 
 To set the key manually for the OpenAI provider:
 

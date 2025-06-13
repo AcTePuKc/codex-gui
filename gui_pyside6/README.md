@@ -41,15 +41,13 @@ self.full_context_check = QCheckBox("Full Context")
 
 - Python 3.9 or newer
 - Node.js **22+** installed and on your `PATH`
-- A built copy of **Codex CLI**. From the `codex-cli` directory run:
+- A working **Codex CLI** installation. Verify by running:
 
 ```bash
-node bin/codex.js --help
+codex --help
 ```
 
-If the command fails, install dependencies and build the CLI using `pnpm install && pnpm build`.
-
-Codex CLI is a Node/TypeScript project that must be built once with `pnpm build` before it can be used. The GUI relies on this built CLI.
+If the command fails, install the CLI globally using `npm install -g @openai/codex`.
 
 ### Package manager detection
 

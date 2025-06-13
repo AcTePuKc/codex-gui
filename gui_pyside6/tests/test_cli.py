@@ -135,3 +135,18 @@ def test_session_error_triggers_message_box(monkeypatch):
     assert "something went wrong" in captured.get("text", "")
     assert window.status_bar.currentMessage() == "Session failed"
 
+
+def test_clear_button_clears_prompt(monkeypatch):
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+
+    agent_manager = AgentManager()
+    settings = {}
+    window = main_window_module.MainWindow(agent_manager, settings)
+
+    assert hasattr(window, "clear_btn")
+
+    window.prompt_edit.setPlainText("text")
+    window.clear_btn.click()
+    assert window.prompt_edit.toPlainText() == ""
+

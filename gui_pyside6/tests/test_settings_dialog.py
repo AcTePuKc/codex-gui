@@ -154,3 +154,17 @@ def test_load_models_called_after_model_combo_created(monkeypatch):
     monkeypatch.setattr(SettingsDialog, "load_models", fake_load_models)
 
     SettingsDialog(settings)
+
+
+def test_api_key_dialog_get_key_button_visibility():
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+
+    from gui_pyside6.ui.api_key_dialog import ApiKeyDialog
+
+    openai_dialog = ApiKeyDialog("openai")
+    assert hasattr(openai_dialog, "get_key_button")
+
+    ollama_dialog = ApiKeyDialog("ollama")
+    assert not hasattr(ollama_dialog, "get_key_button")
+

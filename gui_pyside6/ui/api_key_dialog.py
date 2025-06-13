@@ -30,13 +30,14 @@ class ApiKeyDialog(QDialog):
         self.remember_check = QCheckBox("Remember key")
         layout.addWidget(self.remember_check)
 
-        self.get_key_button = QPushButton("Get API Key")
-        self.get_key_button.clicked.connect(
-            lambda: QDesktopServices.openUrl(
-                QUrl("https://platform.openai.com/account/api-keys")
+        if provider.lower() == "openai":
+            self.get_key_button = QPushButton("Get API Key")
+            self.get_key_button.clicked.connect(
+                lambda: QDesktopServices.openUrl(
+                    QUrl("https://platform.openai.com/account/api-keys")
+                )
             )
-        )
-        layout.addWidget(self.get_key_button)
+            layout.addWidget(self.get_key_button)
 
         button_layout = QVBoxLayout()
         self.ok_button = QPushButton("OK")

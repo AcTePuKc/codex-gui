@@ -35,8 +35,15 @@ def test_start_codex_handles_command(monkeypatch):
     monkeypatch.setattr(codex_adapter, "start_session", lambda *a, **k: iter([]))
 
     class DummySignal:
+        def __init__(self):
+            self._slots = []
+
         def connect(self, fn):
-            pass
+            self._slots.append(fn)
+
+        def emit(self, *args, **kwargs):
+            for fn in self._slots:
+                fn(*args, **kwargs)
 
     class DummyWorker:
         def __init__(self, *a, **k):
@@ -44,8 +51,10 @@ def test_start_codex_handles_command(monkeypatch):
             self.log_line = DummySignal()
             self.finished = DummySignal()
             self.error = DummySignal()
+
         def start(self):
             pass
+
         def isRunning(self):
             return False
 
@@ -56,6 +65,10 @@ def test_start_codex_handles_command(monkeypatch):
     window = main_window_module.MainWindow(agent_manager, settings)
     window.prompt_edit.setPlainText("hi")
     window.start_codex()
+    assert window.progress_dialog is not None
+    assert window.progress_dialog.isVisible()
+    window.worker.finished.emit()
+    assert window.progress_dialog is None
 
 
 def test_session_error_triggers_message_box(monkeypatch):
@@ -104,10 +117,12 @@ def test_session_error_triggers_message_box(monkeypatch):
     window = main_window_module.MainWindow(agent_manager, settings)
     window.prompt_edit.setPlainText("oops")
     window.start_codex()
+    assert window.progress_dialog is not None
+    assert window.progress_dialog.isVisible()
 
     window.worker.error.emit("something went wrong")
     window.worker.finished.emit()
-
+    assert window.progress_dialog is None
     assert captured.get("title") == "Session Failed"
     assert "something went wrong" in captured.get("text", "")
     assert window.status_bar.currentMessage() == "Session failed"

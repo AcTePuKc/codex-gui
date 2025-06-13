@@ -20,6 +20,14 @@ class CodexError(RuntimeError):
         self.stderr = stderr
 
 
+class CodexTimeout(RuntimeError):
+    """Raised when a Codex CLI command exceeds the allowed timeout."""
+
+    def __init__(self, timeout: float) -> None:
+        super().__init__(f"Codex CLI command timed out after {timeout} seconds")
+        self.timeout = timeout
+
+
 __all__ = [
     "start_session",
     "stop_session",
@@ -27,6 +35,7 @@ __all__ = [
     "redeem_free_credits",
     "ensure_cli_available",
     "CodexError",
+    "CodexTimeout",
     "build_command",
 ]
 
@@ -315,36 +324,31 @@ def stop_session() -> None:
     _current_process = None
 
 
-def _run_simple_command(cmd: list[str]) -> Iterable[str]:
+def _run_simple_command(cmd: list[str], timeout: float | None = None) -> Iterable[str]:
     """Run a Codex CLI command and yield output lines."""
-    global _current_process, _terminated
+    global _current_process
     if _current_process is not None:
         raise RuntimeError("A Codex session is already running")
 
-    _terminated = False
-    process = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        bufsize=1,
-    )
-    _current_process = process
-
-    assert process.stdout is not None
-    assert process.stderr is not None
+    if timeout is not None and timeout <= 0:
+        raise ValueError("timeout must be positive")
 
     try:
-        for line in process.stdout:
-            yield line.rstrip("\n")
-    finally:
-        process.stdout.close()
-        stderr_output = process.stderr.read()
-        process.stderr.close()
-        return_code = process.wait()
-        _current_process = None
-        if return_code != 0 and not _terminated:
-            raise CodexError(return_code, stderr_output)
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise CodexTimeout(timeout or 0) from exc
+
+    if result.returncode != 0:
+        raise CodexError(result.returncode, result.stderr)
+
+    for line in result.stdout.splitlines():
+        yield line.rstrip("\n")
 
 
 def login(settings: dict | None = None) -> Iterable[str]:
@@ -355,9 +359,18 @@ def login(settings: dict | None = None) -> Iterable[str]:
     yield from _run_simple_command(cmd)
 
 
-def redeem_free_credits(settings: dict | None = None) -> Iterable[str]:
-    """Run ``codex --free`` and yield output lines."""
+def redeem_free_credits(
+    settings: dict | None = None, *, timeout: float = 30.0
+) -> Iterable[str]:
+    """Run ``codex --free`` and yield output lines.
+
+    Parameters
+    ----------
+    timeout : float, optional
+        Maximum number of seconds to allow the command to run before
+        terminating it. Defaults to 30 seconds.
+    """
     settings = settings or {}
     cli_exe = settings.get("cli_path") or "codex"
     cmd = [cli_exe, "--free"]
-    yield from _run_simple_command(cmd)
+    yield from _run_simple_command(cmd, timeout=timeout)

@@ -43,6 +43,7 @@ def test_start_codex_handles_command(monkeypatch):
             self.line_received = DummySignal()
             self.log_line = DummySignal()
             self.finished = DummySignal()
+            self.error = DummySignal()
         def start(self):
             pass
         def isRunning(self):
@@ -55,4 +56,59 @@ def test_start_codex_handles_command(monkeypatch):
     window = main_window_module.MainWindow(agent_manager, settings)
     window.prompt_edit.setPlainText("hi")
     window.start_codex()
+
+
+def test_session_error_triggers_message_box(monkeypatch):
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+
+    monkeypatch.setattr(codex_adapter, "ensure_cli_available", lambda *a, **k: None)
+    monkeypatch.setattr(codex_adapter, "start_session", lambda *a, **k: iter([]))
+
+    class DummySignal:
+        def __init__(self):
+            self._slots = []
+
+        def connect(self, fn):
+            self._slots.append(fn)
+
+        def emit(self, *args, **kwargs):
+            for fn in self._slots:
+                fn(*args, **kwargs)
+
+    class DummyWorker:
+        def __init__(self, *a, **k):
+            self.line_received = DummySignal()
+            self.log_line = DummySignal()
+            self.finished = DummySignal()
+            self.error = DummySignal()
+
+        def start(self):
+            pass
+
+        def isRunning(self):
+            return False
+
+    monkeypatch.setattr(main_window_module, "CodexWorker", DummyWorker)
+
+    captured = {}
+
+    def fake_warning(parent, title, text):
+        captured["title"] = title
+        captured["text"] = text
+
+    monkeypatch.setattr(main_window_module.QMessageBox, "warning", fake_warning)
+
+    agent_manager = AgentManager()
+    settings = {}
+    window = main_window_module.MainWindow(agent_manager, settings)
+    window.prompt_edit.setPlainText("oops")
+    window.start_codex()
+
+    window.worker.error.emit("something went wrong")
+    window.worker.finished.emit()
+
+    assert captured.get("title") == "Session Failed"
+    assert "something went wrong" in captured.get("text", "")
+    assert window.status_bar.currentMessage() == "Session failed"
 

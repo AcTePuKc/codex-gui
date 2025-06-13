@@ -94,18 +94,28 @@ def ensure_cli_available(
     for path in candidates:
         try:
             subprocess.run(
-                [path, "--help"],
+                shlex.split(str(path)) + ["--help"],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
                 check=True,
                 text=True,
             )
-            if path != cli_path:
-                settings["cli_path"] = path
-                try:
-                    save_settings(settings)
-                except Exception:  # pylint: disable=broad-except
-                    pass
+            if path == cli_path:
+                if log_fn:
+                    log_fn(f"Using configured CLI path: {path}", "info")
+                return
+            if log_fn:
+                log_msg = "Using detected CLI path: {}".format(path)
+                if cli_path:
+                    log_msg += " (replacing invalid setting)"
+                else:
+                    log_msg += " (no previous setting)"
+                log_fn(log_msg, "info")
+            settings["cli_path"] = path
+            try:
+                save_settings(settings)
+            except Exception:  # pylint: disable=broad-except
+                pass
             return
         except (FileNotFoundError, subprocess.CalledProcessError):
             continue
@@ -122,7 +132,15 @@ def ensure_cli_available(
                 check=True,
                 text=True,
             )
-            settings["cli_path"] = "npx codex --no-update-notifier"
+            cli_cmd = "npx codex --no-update-notifier"
+            if log_fn:
+                log_msg = f"Using '{cli_cmd}' fallback"
+                if cli_path:
+                    log_msg += " (replacing invalid setting)"
+                else:
+                    log_msg += " (no previous setting)"
+                log_fn(log_msg, "info")
+            settings["cli_path"] = cli_cmd
             try:
                 save_settings(settings)
             except Exception:  # pylint: disable=broad-except

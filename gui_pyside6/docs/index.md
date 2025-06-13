@@ -185,6 +185,11 @@ endpoints. The provider drop-down lists all entries from
 URL will prompt for those values so you can easily switch between different
 Codex-compatible services.
 
+Runtime preferences from the settings dialog are written to `config/settings.json`.
+Provider overrides and custom endpoints are stored in `config/providers.json`.
+Both files are created after the first launch and can be edited manually to tweak
+defaults outside of the GUI.
+
 ---
 
 ## Login & Free Credits

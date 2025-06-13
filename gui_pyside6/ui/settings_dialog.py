@@ -90,7 +90,9 @@ class SettingsDialog(QDialog):
         if index >= 0:
             self.provider_combo.setCurrentIndex(index)
         layout.addWidget(self.provider_combo)
-        self.provider_combo.currentIndexChanged.connect(self.load_models)
+        self.provider_combo.currentIndexChanged.connect(
+            lambda: self.load_models(prompt_for_key=True)
+        )
 
         layout.addWidget(QLabel("Model:"))
         model_row = QWidget()
@@ -98,7 +100,9 @@ class SettingsDialog(QDialog):
         model_layout.setContentsMargins(0, 0, 0, 0)
         self.model_combo = QComboBox()
         refresh_btn = QPushButton("Refresh")
-        refresh_btn.clicked.connect(self.load_models)
+        refresh_btn.clicked.connect(
+            lambda: self.load_models(prompt_for_key=True)
+        )
         model_layout.addWidget(self.model_combo)
         model_layout.addWidget(refresh_btn)
         layout.addWidget(model_row)
@@ -197,13 +201,20 @@ class SettingsDialog(QDialog):
         buttons.rejected.connect(self.reject)
         main_layout.addWidget(buttons)
 
-    def load_models(self) -> None:
+    def load_models(self, prompt_for_key: bool = False) -> None:
         """Populate the model combo box based on the selected provider."""
         provider = self.provider_combo.currentData() or "openai"
         if provider not in {"local", "custom"}:
-            if not ensure_api_key(provider, self):
-                self.model_combo.clear()
-                return
+            env_var = f"{provider.upper()}_API_KEY"
+            has_key = os.getenv(env_var) or os.getenv("OPENAI_API_KEY")
+            if not has_key:
+                if prompt_for_key:
+                    if not ensure_api_key(provider, self):
+                        self.model_combo.clear()
+                        return
+                else:
+                    self.model_combo.clear()
+                    return
         if provider == "openai":
             try:
                 models = get_available_models(provider)

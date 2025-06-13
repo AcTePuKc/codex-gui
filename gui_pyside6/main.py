@@ -5,7 +5,7 @@ from PySide6.QtWidgets import QApplication
 
 from .backend.settings_manager import load_settings
 from .backend.agent_manager import AgentManager
-from .ui import ApiKeyDialog, MainWindow
+from .ui import MainWindow
 
 def main() -> None:
     """Entry point for the Hybrid PySide6 GUI."""

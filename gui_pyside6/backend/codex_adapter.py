@@ -360,17 +360,22 @@ def login(settings: dict | None = None) -> Iterable[str]:
 
 
 def redeem_free_credits(
-    settings: dict | None = None, *, timeout: float = 30.0
+    settings: dict | None = None,
+    *,
+    timeout: float | None = None,
 ) -> Iterable[str]:
     """Run ``codex --free`` and yield output lines.
 
     Parameters
     ----------
-    timeout : float, optional
+    timeout : float | None, optional
         Maximum number of seconds to allow the command to run before
-        terminating it. Defaults to 30 seconds.
+        terminating it. ``None`` will use the ``redeem_timeout`` setting or
+        the default of 30 seconds.
     """
     settings = settings or {}
+    if timeout is None:
+        timeout = float(settings.get("redeem_timeout", 30))
     cli_exe = settings.get("cli_path") or "codex"
     cmd = [cli_exe, "--free"]
     yield from _run_simple_command(cmd, timeout=timeout)

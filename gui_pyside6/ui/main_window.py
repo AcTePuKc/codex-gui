@@ -154,6 +154,7 @@ class CodexCommandWorker(QThread):
 
     line_received = Signal(str)
     log_line = Signal(str, str)
+    error = Signal(str)
     finished = Signal()
 
     def __init__(self, run_fn) -> None:
@@ -161,6 +162,7 @@ class CodexCommandWorker(QThread):
         self.run_fn = run_fn
 
     def run(self) -> None:  # type: ignore[override]
+        self.log_line.emit("debug", "Spawning CLI command")
         try:
             for line in self.run_fn():
                 self.line_received.emit(line)
@@ -169,16 +171,20 @@ class CodexCommandWorker(QThread):
             msg = str(exc)
             self.line_received.emit(f"Error: {msg}")
             self.log_line.emit("error", msg)
+            self.error.emit(msg)
         except codex_adapter.CodexError as exc:
             for err_line in exc.stderr.strip().splitlines():
                 self.line_received.emit(f"Error: {err_line}")
                 self.log_line.emit("error", err_line)
             self.line_received.emit(f"Error: {exc}")
             self.log_line.emit("error", str(exc))
+            self.error.emit(exc.stderr)
         except Exception as exc:  # pylint: disable=broad-except
             self.line_received.emit(f"Error: {exc}")
             self.log_line.emit("error", str(exc))
+            self.error.emit(str(exc))
         finally:
+            self.log_line.emit("debug", "CLI command finished")
             self.finished.emit()
 
 
@@ -865,8 +871,9 @@ class MainWindow(QMainWindow):
         )
 
     def redeem_free_credits(self) -> None:
+        timeout = float(self.settings.get("redeem_timeout", 30))
         self._run_cli_command(
-            lambda: codex_adapter.redeem_free_credits(self.settings),
+            lambda: codex_adapter.redeem_free_credits(self.settings, timeout=timeout),
             "Credit redemption finished",
         )
 
@@ -891,6 +898,7 @@ class MainWindow(QMainWindow):
         self.worker = CodexCommandWorker(fn)
         self.worker.line_received.connect(self.append_output)
         self.worker.log_line.connect(self.handle_log_line)
+        self.worker.error.connect(self._command_error)
         self.worker.finished.connect(
             lambda: self._command_finished(done_msg), Qt.QueuedConnection
         )
@@ -902,6 +910,11 @@ class MainWindow(QMainWindow):
         self.free_action.setEnabled(False)
         self.status_bar.showMessage("Running command...")
         self.worker.start()
+
+    def _command_error(self, stderr: str) -> None:
+        QMessageBox.warning(
+            self, "Command Failed", stderr.strip() or "An unknown error occurred"
+        )
 
     def _command_finished(self, msg: str) -> None:
         self.run_btn.setEnabled(True)

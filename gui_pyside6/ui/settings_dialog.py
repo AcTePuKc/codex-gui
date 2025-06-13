@@ -36,7 +36,9 @@ from .. import logger
 class SettingsDialog(QDialog):
     """Dialog for modifying runtime settings."""
 
-    def __init__(self, settings: dict, parent: QWidget | None = None, debug_console=None) -> None:
+    def __init__(
+        self, settings: dict, parent: QWidget | None = None, debug_console=None
+    ) -> None:
         super().__init__(parent)
         self.settings = settings
         self.debug_console = debug_console
@@ -185,10 +187,14 @@ class SettingsDialog(QDialog):
         layout.addWidget(self.disable_storage_check)
 
         self.auto_scan_check = QCheckBox("Auto Scan Files")
-        self.auto_scan_check.setChecked(
-            bool(settings.get("auto_scan_files", True))
-        )
+        self.auto_scan_check.setChecked(bool(settings.get("auto_scan_files", True)))
         layout.addWidget(self.auto_scan_check)
+
+        layout.addWidget(QLabel("Free Credit Timeout (s):"))
+        self.free_timeout_spin = QSpinBox()
+        self.free_timeout_spin.setRange(5, 300)
+        self.free_timeout_spin.setValue(int(settings.get("redeem_timeout", 30)))
+        layout.addWidget(self.free_timeout_spin)
 
         layout.addWidget(QLabel("Project Doc:"))
         project_doc_row = QWidget()
@@ -244,7 +250,10 @@ class SettingsDialog(QDialog):
             models = []
             if provider == "local":
                 if shutil.which("ollama"):
-                    commands = [["ollama", "list", "--json"], ["ollama", "ls", "--json"]]
+                    commands = [
+                        ["ollama", "list", "--json"],
+                        ["ollama", "ls", "--json"],
+                    ]
                     for cmd in commands:
                         logger.info("$ " + " ".join(cmd))
                         try:
@@ -414,6 +423,7 @@ class SettingsDialog(QDialog):
         self.settings["project_doc"] = self.project_doc_edit.text().strip()
         self.settings["writable_root"] = self.writable_root_edit.text().strip()
         self.settings["auto_scan_files"] = self.auto_scan_check.isChecked()
+        self.settings["redeem_timeout"] = int(self.free_timeout_spin.value())
         save_settings(self.settings)
         super().accept()
 
@@ -429,6 +439,7 @@ class SettingsDialog(QDialog):
 
     def check_cli(self) -> None:
         """Verify the Codex CLI path and log search details."""
+
         def log_fn(text: str, level: str = "info") -> None:
             if level == "error":
                 logger.error(text)
@@ -445,7 +456,9 @@ class SettingsDialog(QDialog):
             return
 
         self.cli_edit.setText(tmp_settings.get("cli_path", ""))
-        QMessageBox.information(self, "Codex CLI Found", f"Using CLI at: {tmp_settings.get('cli_path', '')}")
+        QMessageBox.information(
+            self, "Codex CLI Found", f"Using CLI at: {tmp_settings.get('cli_path', '')}"
+        )
 
     def browse_project_doc(self) -> None:
         """Prompt the user to select an additional project doc file."""

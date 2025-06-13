@@ -939,4 +939,5 @@ class MainWindow(QMainWindow):
             self.stop_codex()
             # Ensure the worker thread has fully finished
             self.worker.wait()
+        save_settings(self.settings)
         super().closeEvent(event)

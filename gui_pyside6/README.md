@@ -40,6 +40,7 @@ self.full_context_check = QCheckBox("Full Context")
 ## Prerequisites
 
 - Python 3.9 or newer
+- Node.js **22+** installed and on your `PATH`
 - A built copy of **Codex CLI**. From the `codex-cli` directory run:
 
 ```bash

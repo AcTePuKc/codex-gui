@@ -39,8 +39,9 @@ Codex-GUI is designed for developers who want a more interactive experience with
 ## Launching {#launching}
 
 1. Install [`uv`](https://github.com/astral-sh/uv).
-2. Verify the **Codex CLI** is built by running `node bin/codex.js --help` in the `codex-cli` directory. If it fails, run `pnpm install && pnpm build` there.
-3. From the `gui_pyside6` folder run:
+2. Ensure Node.js **22+** is installed and available on your `PATH`.
+3. Verify the **Codex CLI** is built by running `node bin/codex.js --help` in the `codex-cli` directory. If it fails, run `pnpm install && pnpm build` there.
+4. From the `gui_pyside6` folder run:
 
 ```bash
 uv pip install -r requirements.uv.in

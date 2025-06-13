@@ -270,13 +270,13 @@ class SettingsDialog(QDialog):
                             if result.stderr:
                                 for line in result.stderr.splitlines():
                                     logger.error(line)
-                            for line in result.stdout.splitlines():
-                                try:
-                                    data = json.loads(line)
-                                except json.JSONDecodeError:
-                                    continue
-                                name = data.get("name")
-                                if isinstance(name, str):
+                            try:
+                                data = json.loads(result.stdout)
+                            except json.JSONDecodeError:
+                                data = {}
+                            for item in data.get("models", []):
+                                name = item.get("name") or item.get("model")
+                                if name:
                                     models.append(name)
                             if models:
                                 break

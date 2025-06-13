@@ -18,7 +18,6 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QMainWindow,
     QMenuBar,
-    QToolBar,
     QToolButton,
     QPushButton,
     QVBoxLayout,
@@ -316,12 +315,6 @@ class MainWindow(QMainWindow):
         view_action = QAction("View Rollout...", self)
         view_action.triggered.connect(self.select_rollout_file)
         history_menu.addAction(view_action)
-
-        # ----------------------- Toolbar -----------------------
-        toolbar = QToolBar("Main", self)
-        self.addToolBar(toolbar)
-        toolbar.addAction(self.run_action)
-        toolbar.addAction(self.stop_action)
 
         # Instantiate status bar
         self.status_bar = self.statusBar()

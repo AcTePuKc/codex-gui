@@ -32,6 +32,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QLabel,
     QStyle,
+    QProgressDialog,
 )
 
 from .settings_dialog import SettingsDialog
@@ -199,6 +200,7 @@ class MainWindow(QMainWindow):
         self.settings = settings
         self.worker: QThread | None = None
         self._session_failed = False
+        self.progress_dialog: QProgressDialog | None = None
 
         self.setWindowTitle("Codex-GUI")
 
@@ -531,6 +533,7 @@ class MainWindow(QMainWindow):
         self.worker.log_line.connect(self.handle_log_line)
         self.worker.error.connect(self._session_error)
         self.worker.finished.connect(self.session_finished)
+        self._start_spinner()
         self.worker.start()
         self.run_btn.setEnabled(False)
         self.stop_btn.setEnabled(True)
@@ -570,6 +573,7 @@ class MainWindow(QMainWindow):
         self.stop_btn.setEnabled(False)
         self.run_action.setEnabled(True)
         self.stop_action.setEnabled(False)
+        self._stop_spinner()
         if self._session_failed:
             self.status_bar.showMessage("Session failed")
         else:
@@ -643,6 +647,30 @@ class MainWindow(QMainWindow):
             item = QListWidgetItem(agent.get("name", ""))
             item.setToolTip(agent.get("description", ""))
             self.agent_list.addItem(item)
+
+    def _start_spinner(self) -> None:
+        if self.progress_dialog:
+            self.progress_dialog.close()
+            self.progress_dialog.deleteLater()
+        self.progress_dialog = QProgressDialog(
+            "Running Codex session...",
+            None,
+            0,
+            0,
+            self,
+        )
+        self.progress_dialog.setWindowTitle("Please Wait")
+        self.progress_dialog.setWindowModality(Qt.ApplicationModal)
+        self.progress_dialog.setCancelButton(None)
+        self.progress_dialog.setAutoClose(False)
+        self.progress_dialog.setAutoReset(False)
+        self.progress_dialog.show()
+
+    def _stop_spinner(self) -> None:
+        if self.progress_dialog:
+            self.progress_dialog.hide()
+            self.progress_dialog.deleteLater()
+            self.progress_dialog = None
 
     def browse_images(self) -> None:
         files, _ = QFileDialog.getOpenFileNames(
@@ -929,6 +957,7 @@ class MainWindow(QMainWindow):
             self, "Session Failed", stderr.strip() or "An unknown error occurred"
         )
         self.status_bar.showMessage("Session failed")
+        self._stop_spinner()
         self._session_failed = True
 
     def _command_error(self, stderr: str) -> None:

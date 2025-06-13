@@ -29,6 +29,7 @@ from PySide6.QtWidgets import (
     QMenu,
     QInputDialog,
     QFileDialog,
+    QLineEdit,
     QLabel,
     QStyle,
 )
@@ -110,6 +111,7 @@ class CodexWorker(QThread):
         view_path: str | None = None,
         images: list[str] | None = None,
         files: list[str] | None = None,
+        cwd: str | None = None,
     ) -> None:
         super().__init__()
         self.prompt = prompt
@@ -118,6 +120,7 @@ class CodexWorker(QThread):
         self.view_path = view_path
         self.images = images or []
         self.files = files or []
+        self.cwd = cwd
 
     def run(self) -> None:  # type: ignore[override]
         try:
@@ -128,6 +131,7 @@ class CodexWorker(QThread):
                 view=self.view_path,
                 images=self.images,
                 files=self.files,
+                cwd=self.cwd,
             ):
                 self.line_received.emit(line)
                 self.log_line.emit("info", line)
@@ -360,6 +364,18 @@ class MainWindow(QMainWindow):
         self.remove_file_btn.clicked.connect(self.remove_selected_files)
         files_row.addWidget(self.remove_file_btn)
 
+        directory_row = QHBoxLayout()
+        center_layout.addLayout(directory_row)
+        directory_row.addWidget(QLabel("Directory:"))
+        self.directory_edit = QLineEdit()
+        directory_row.addWidget(self.directory_edit)
+        self.add_directory_btn = QPushButton("Browse")
+        self.add_directory_btn.clicked.connect(self.browse_directory)
+        directory_row.addWidget(self.add_directory_btn)
+        self.clear_directory_btn = QPushButton("Clear")
+        self.clear_directory_btn.clicked.connect(self.clear_directory)
+        directory_row.addWidget(self.clear_directory_btn)
+
         inner_splitter = QSplitter(Qt.Vertical)
 
         self.prompt_edit = PromptEdit()
@@ -467,6 +483,8 @@ class MainWindow(QMainWindow):
         file_paths = [
             self.file_list.item(i).text() for i in range(self.file_list.count())
         ]
+        cwd_path = self.directory_edit.text().strip()
+        cwd_arg = cwd_path or None
         cmd = codex_adapter.build_command(
             prompt_text,
             agent,
@@ -474,6 +492,7 @@ class MainWindow(QMainWindow):
             view=view_path,
             images=image_paths if image_paths else None,
             files=file_paths if file_paths else None,
+            cwd=cwd_arg,
         )
         if self.settings.get("verbose"):
             self.append_output("$ " + " ".join(cmd))
@@ -485,6 +504,7 @@ class MainWindow(QMainWindow):
             view_path,
             images=image_paths,
             files=file_paths,
+            cwd=cwd_arg,
         )
         self.worker.line_received.connect(self.append_output)
         self.worker.log_line.connect(self.handle_log_line)
@@ -624,6 +644,18 @@ class MainWindow(QMainWindow):
                 for i in range(self.file_list.count())
             ):
                 self.file_list.addItem(path)
+
+    def browse_directory(self) -> None:
+        directory = QFileDialog.getExistingDirectory(
+            self,
+            "Select Directory",
+            str(Path.cwd()),
+        )
+        if directory:
+            self.directory_edit.setText(directory)
+
+    def clear_directory(self) -> None:
+        self.directory_edit.clear()
 
     def remove_selected_images(self) -> None:
         for item in self.image_list.selectedItems():

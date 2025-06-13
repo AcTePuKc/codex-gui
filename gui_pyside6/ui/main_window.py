@@ -469,6 +469,16 @@ class MainWindow(QMainWindow):
         self.stop_btn.clicked.connect(self.stop_codex)
         button_bar.addWidget(self.stop_btn)
 
+        QShortcut(
+            QKeySequence(Qt.CTRL | Qt.Key_Return), self
+        ).activated.connect(self.start_codex)
+        QShortcut(
+            QKeySequence(Qt.CTRL | Qt.Key_Enter), self
+        ).activated.connect(self.start_codex)
+        QShortcut(QKeySequence(Qt.Key_Escape), self).activated.connect(
+            self.stop_codex
+        )
+
         splitter.addWidget(center_widget)
 
         # ----------------------- Right Panel -----------------------

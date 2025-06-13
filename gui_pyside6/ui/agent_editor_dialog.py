@@ -20,6 +20,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QHBoxLayout,
     QInputDialog,
+    QStackedWidget,
 )
 
 from ..backend.agent_loader import AGENTS_DIR
@@ -41,63 +42,74 @@ class AgentEditorDialog(QDialog):
 
         layout = QVBoxLayout(self)
 
-        layout.addWidget(QLabel("Name:"))
+        self.stack = QStackedWidget()
+        layout.addWidget(self.stack)
+
+        form = QWidget()
+        form_layout = QVBoxLayout(form)
+
+        form_layout.addWidget(QLabel("Name:"))
         self.name_edit = QLineEdit(data.get("name", ""))
-        layout.addWidget(self.name_edit)
+        form_layout.addWidget(self.name_edit)
 
-        layout.addWidget(QLabel("Description:"))
+        form_layout.addWidget(QLabel("Description:"))
         self.desc_edit = QLineEdit(data.get("description", ""))
-        layout.addWidget(self.desc_edit)
+        form_layout.addWidget(self.desc_edit)
 
-        layout.addWidget(QLabel("System Prompt:"))
+        form_layout.addWidget(QLabel("System Prompt:"))
         self.prompt_edit = QPlainTextEdit(data.get("system_prompt", ""))
-        layout.addWidget(self.prompt_edit)
+        form_layout.addWidget(self.prompt_edit)
 
-        layout.addWidget(QLabel("Temperature:"))
+        form_layout.addWidget(QLabel("Temperature:"))
         self.temp_spin = QDoubleSpinBox()
         self.temp_spin.setRange(0.0, 1.0)
         self.temp_spin.setSingleStep(0.1)
         self.temp_spin.setValue(float(data.get("default_temperature", 0.5)))
-        layout.addWidget(self.temp_spin)
+        form_layout.addWidget(self.temp_spin)
 
         self.tools_check = QCheckBox("Tools Enabled")
         self.tools_check.setChecked(bool(data.get("tools_enabled", False)))
-        layout.addWidget(self.tools_check)
+        form_layout.addWidget(self.tools_check)
 
-        layout.addWidget(QLabel("Max Tokens:"))
+        form_layout.addWidget(QLabel("Max Tokens:"))
         self.max_spin = QSpinBox()
         self.max_spin.setRange(1, 4096)
         self.max_spin.setValue(int(data.get("max_tokens", 1024)))
-        layout.addWidget(self.max_spin)
+        form_layout.addWidget(self.max_spin)
 
-        layout.addWidget(QLabel("Top-p:"))
+        form_layout.addWidget(QLabel("Top-p:"))
         self.top_p_spin = QDoubleSpinBox()
         self.top_p_spin.setRange(0.0, 1.0)
         self.top_p_spin.setSingleStep(0.1)
         self.top_p_spin.setValue(float(data.get("top_p", 1.0)))
-        layout.addWidget(self.top_p_spin)
+        form_layout.addWidget(self.top_p_spin)
 
-        layout.addWidget(QLabel("Frequency Penalty:"))
+        form_layout.addWidget(QLabel("Frequency Penalty:"))
         self.freq_spin = QDoubleSpinBox()
         self.freq_spin.setRange(-2.0, 2.0)
         self.freq_spin.setSingleStep(0.1)
         self.freq_spin.setValue(float(data.get("frequency_penalty", 0.0)))
-        layout.addWidget(self.freq_spin)
+        form_layout.addWidget(self.freq_spin)
 
-        layout.addWidget(QLabel("Presence Penalty:"))
+        form_layout.addWidget(QLabel("Presence Penalty:"))
         self.presence_spin = QDoubleSpinBox()
         self.presence_spin.setRange(-2.0, 2.0)
         self.presence_spin.setSingleStep(0.1)
         self.presence_spin.setValue(float(data.get("presence_penalty", 0.0)))
-        layout.addWidget(self.presence_spin)
+        form_layout.addWidget(self.presence_spin)
+
+        self.stack.addWidget(form)
+
+        self.json_edit = QPlainTextEdit(json.dumps(data, indent=2))
+        self.stack.addWidget(self.json_edit)
 
         buttons = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
-        self.json_btn = buttons.addButton("Edit JSON...", QDialogButtonBox.ActionRole)
+        self.toggle_btn = buttons.addButton("JSON View", QDialogButtonBox.ActionRole)
         buttons.accepted.connect(self.save_agent)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
 
-        self.json_btn.clicked.connect(self.open_json_editor)
+        self.toggle_btn.clicked.connect(self.toggle_json_view)
 
     def gather_data(self) -> dict[str, Any]:
         return {
@@ -112,25 +124,43 @@ class AgentEditorDialog(QDialog):
             "presence_penalty": float(self.presence_spin.value()),
         }
 
-    def open_json_editor(self) -> None:
-        data = self.gather_data()
-        if self.agent_path:
-            data["_path"] = str(self.agent_path)
-        dlg = AgentJsonDialog(data, parent=self)
-        if dlg.exec() and dlg.modified:
-            self.agent_path = dlg.agent_path
-            data = dlg.agent_data
-            self.name_edit.setText(data.get("name", ""))
-            self.desc_edit.setText(data.get("description", ""))
-            self.prompt_edit.setPlainText(data.get("system_prompt", ""))
-            self.temp_spin.setValue(float(data.get("default_temperature", 0.5)))
-            self.tools_check.setChecked(bool(data.get("tools_enabled", False)))
-            self.max_spin.setValue(int(data.get("max_tokens", 1024)))
-            self.top_p_spin.setValue(float(data.get("top_p", 1.0)))
-            self.freq_spin.setValue(float(data.get("frequency_penalty", 0.0)))
-            self.presence_spin.setValue(float(data.get("presence_penalty", 0.0)))
+    def update_form_fields(self, data: dict) -> None:
+        self.name_edit.setText(data.get("name", ""))
+        self.desc_edit.setText(data.get("description", ""))
+        self.prompt_edit.setPlainText(data.get("system_prompt", ""))
+        self.temp_spin.setValue(float(data.get("default_temperature", 0.5)))
+        self.tools_check.setChecked(bool(data.get("tools_enabled", False)))
+        self.max_spin.setValue(int(data.get("max_tokens", 1024)))
+        self.top_p_spin.setValue(float(data.get("top_p", 1.0)))
+        self.freq_spin.setValue(float(data.get("frequency_penalty", 0.0)))
+        self.presence_spin.setValue(float(data.get("presence_penalty", 0.0)))
+
+    def _parse_json(self) -> dict | None:
+        try:
+            return json.loads(self.json_edit.toPlainText())
+        except json.JSONDecodeError as exc:
+            QMessageBox.warning(self, "Invalid JSON", str(exc))
+            return None
+
+    def toggle_json_view(self) -> None:
+        if self.stack.currentWidget() is self.json_edit:
+            data = self._parse_json()
+            if data is None:
+                return
+            self.update_form_fields(data)
+            self.toggle_btn.setText("JSON View")
+            self.stack.setCurrentIndex(0)
+        else:
+            self.json_edit.setPlainText(json.dumps(self.gather_data(), indent=2))
+            self.toggle_btn.setText("Form View")
+            self.stack.setCurrentWidget(self.json_edit)
 
     def save_agent(self) -> None:
+        if self.stack.currentWidget() is self.json_edit:
+            data = self._parse_json()
+            if data is None:
+                return
+            self.update_form_fields(data)
         data = self.gather_data()
         path = self.agent_path
         if path is None:
@@ -160,7 +190,9 @@ class AgentJsonDialog(QDialog):
     def __init__(self, agent: dict, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.agent_data = {k: v for k, v in agent.items() if k != "_path"}
-        self.agent_path: Path | None = Path(agent["_path"]) if "_path" in agent else None
+        self.agent_path: Path | None = (
+            Path(agent["_path"]) if "_path" in agent else None
+        )
         self.manager = AgentManager()
         self.setWindowTitle("Agent JSON")
 
@@ -234,7 +266,9 @@ class AgentJsonDialog(QDialog):
     def on_rename(self) -> None:
         if not self.agent_path:
             return
-        new_name, ok = QInputDialog.getText(self, "Rename Agent", "New file name:", text=self.agent_path.stem)
+        new_name, ok = QInputDialog.getText(
+            self, "Rename Agent", "New file name:", text=self.agent_path.stem
+        )
         if not ok or not new_name:
             return
         new_path = self.agent_path.with_name(new_name + ".json")
@@ -245,13 +279,15 @@ class AgentJsonDialog(QDialog):
     def on_delete(self) -> None:
         if not self.agent_path:
             return
-        if QMessageBox.question(
-            self,
-            "Delete Agent",
-            f"Delete {self.agent_path.name}?",
-        ) != QMessageBox.Yes:
+        if (
+            QMessageBox.question(
+                self,
+                "Delete Agent",
+                f"Delete {self.agent_path.name}?",
+            )
+            != QMessageBox.Yes
+        ):
             return
         AgentManager().delete_agent({"_path": str(self.agent_path)})
         self.modified = True
         self.accept()
-

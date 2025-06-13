@@ -141,6 +141,9 @@ binary is usually located under `~/.local/share/pnpm` on Linux/macOS or
 `C:\Users\NAME\AppData\Local\pnpm` on Windows. Pointing the setting to this
 file ensures the GUI can launch the CLI correctly.
 
+If no executable is found, the GUI will try `npx codex --help`. When successful
+it automatically uses `npx codex --no-update-notifier` as the command.
+
 ---
 
 ## Project Structure

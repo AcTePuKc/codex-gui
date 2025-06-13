@@ -18,6 +18,14 @@ def test_build_command_returns_list_of_str():
     assert all(isinstance(part, str) for part in cmd)
 
 
+def test_build_command_with_npx_command():
+    agent = {"temperature": 0.3}
+    settings = {"cli_path": "npx codex --no-update-notifier"}
+    cmd = codex_adapter.build_command("hi", agent, settings)
+    assert cmd[:3] == ["npx", "codex", "--no-update-notifier"]
+    assert cmd[-1] == "hi"
+
+
 def test_start_codex_handles_command(monkeypatch):
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
     app = QApplication.instance() or QApplication([])

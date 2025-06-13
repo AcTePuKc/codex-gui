@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import subprocess
 import shutil
+import shlex
 from pathlib import Path
 from collections.abc import Iterable, Callable
 
@@ -109,6 +110,27 @@ def ensure_cli_available(
         except (FileNotFoundError, subprocess.CalledProcessError):
             continue
 
+    npx_path = shutil.which("npx")
+    if npx_path:
+        if log_fn:
+            log_fn("Attempting 'npx codex --help' fallback", "info")
+        try:
+            subprocess.run(
+                [npx_path, "codex", "--help"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                check=True,
+                text=True,
+            )
+            settings["cli_path"] = "npx codex --no-update-notifier"
+            try:
+                save_settings(settings)
+            except Exception:  # pylint: disable=broad-except
+                pass
+            return
+        except (FileNotFoundError, subprocess.CalledProcessError):
+            pass
+
     raise FileNotFoundError(
         "Codex CLI is missing. Install it with 'npm install -g @openai/codex' or set the path in Settings. "
         "See README.md#first-time-setup for manual setup steps."
@@ -135,7 +157,7 @@ def build_command(
     settings = settings or {}
 
     cli_exe = settings.get("cli_path") or "codex"
-    cmd: list[str] = [str(cli_exe)]
+    cmd: list[str] = shlex.split(str(cli_exe))
 
     def add_flag(flag: str, value: object | None) -> None:
         """Safely append a flag and value to the command list."""
@@ -355,7 +377,7 @@ def login(settings: dict | None = None) -> Iterable[str]:
     """Run ``codex --login`` and yield output lines."""
     settings = settings or {}
     cli_exe = settings.get("cli_path") or "codex"
-    cmd = [cli_exe, "--login"]
+    cmd = shlex.split(str(cli_exe)) + ["--login"]
     yield from _run_simple_command(cmd)
 
 
@@ -377,5 +399,5 @@ def redeem_free_credits(
     if timeout is None:
         timeout = float(settings.get("redeem_timeout", 30))
     cli_exe = settings.get("cli_path") or "codex"
-    cmd = [cli_exe, "--free"]
+    cmd = shlex.split(str(cli_exe)) + ["--free"]
     yield from _run_simple_command(cmd, timeout=timeout)

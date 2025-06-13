@@ -16,6 +16,11 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+import json
+import os
+from pathlib import Path
+from urllib import request
+
 from ..backend.settings_manager import save_settings
 from ..backend.model_manager import get_available_models
 from ..utils.api_key import ensure_api_key
@@ -195,8 +200,47 @@ class SettingsDialog(QDialog):
             except Exception:
                 models = []
         elif provider in {"local", "custom"}:
-            # TODO: implement retrieval of local/custom models
             models = []
+            if provider == "local":
+                search_paths = [
+                    Path(os.getenv("LOCAL_MODELS_DIR", "")),
+                    Path.home() / ".codex" / "models",
+                    Path.cwd() / "models",
+                ]
+                for base in search_paths:
+                    if not base:
+                        continue
+                    try:
+                        for entry in base.expanduser().iterdir():
+                            if entry.is_dir():
+                                models.append(entry.name)
+                    except FileNotFoundError:
+                        continue
+                models = sorted(set(models))
+            else:
+                base_url = os.getenv("CUSTOM_MODELS_URL") or os.getenv(
+                    "CUSTOM_BASE_URL"
+                )
+                if base_url and not base_url.endswith("/models"):
+                    endpoint = base_url.rstrip("/") + "/models"
+                else:
+                    endpoint = base_url
+                if endpoint:
+                    try:
+                        with request.urlopen(endpoint, timeout=5) as resp:
+                            data = json.load(resp)
+                        items = data.get("data", data)
+                        for item in items:
+                            model_id = (
+                                item.get("id") if isinstance(item, dict) else item
+                            )
+                            if isinstance(model_id, str):
+                                if model_id.startswith("models/"):
+                                    model_id = model_id.replace("models/", "")
+                                models.append(model_id)
+                        models = sorted(set(models))
+                    except Exception:
+                        models = []
         else:
             models = []
 

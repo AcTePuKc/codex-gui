@@ -495,8 +495,8 @@ class MainWindow(QMainWindow):
             cwd=cwd_arg,
         )
         if self.settings.get("verbose"):
-            self.append_output("$ " + " ".join(cmd))
-        self.debug_console.append_info("$ " + " ".join(cmd))
+            self.append_output("$ " + " ".join(map(str, cmd)))
+        self.debug_console.append_info("$ " + " ".join(map(str, cmd)))
         self.worker = CodexWorker(
             prompt_text,
             agent,

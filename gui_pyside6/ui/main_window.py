@@ -522,7 +522,7 @@ class MainWindow(QMainWindow):
             logger.error(str(exc))
             return
         provider = self.settings.get("provider", "openai")
-        if provider not in {"local", "custom"}:
+        if provider not in {"local", "ollama", "custom"}:
             if not ensure_api_key(provider, self):
                 return
             providers = self.settings.get("providers", {})

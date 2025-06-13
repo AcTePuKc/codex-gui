@@ -37,6 +37,9 @@ from .. import logger
 
 from typing import Optional
 
+# Providers that should be treated as local and not require API keys
+LOCAL_PROVIDERS = {"local", "ollama"}
+
 # cache whether `ollama ps --json` is supported
 _OLLAMA_PS_JSON: Optional[bool] = None
 
@@ -160,17 +163,21 @@ class SettingsDialog(QDialog):
         self.theme_combo.setCurrentText(settings.get("theme", "System"))
         layout.addWidget(self.theme_combo)
 
+        modes_row = QWidget()
+        modes_layout = QHBoxLayout(modes_row)
+        modes_layout.setContentsMargins(0, 0, 0, 0)
         self.flex_check = QCheckBox("Flex Mode")
         self.flex_check.setChecked(bool(settings.get("flex_mode", False)))
-        layout.addWidget(self.flex_check)
+        modes_layout.addWidget(self.flex_check)
 
         self.quiet_check = QCheckBox("Quiet Mode")
         self.quiet_check.setChecked(bool(settings.get("quiet", False)))
-        layout.addWidget(self.quiet_check)
+        modes_layout.addWidget(self.quiet_check)
 
         self.full_context_check = QCheckBox("Full Context")
         self.full_context_check.setChecked(bool(settings.get("full_context", False)))
-        layout.addWidget(self.full_context_check)
+        modes_layout.addWidget(self.full_context_check)
+        layout.addWidget(modes_row)
 
         layout.addWidget(QLabel("Codex CLI Command:"))
         cli_row = QWidget()
@@ -194,33 +201,43 @@ class SettingsDialog(QDialog):
             create_cmd_btn.clicked.connect(self.create_codex_cmd_file)
             layout.addWidget(create_cmd_btn)
 
+        opts_row = QWidget()
+        opts_layout = QHBoxLayout(opts_row)
+        opts_layout.setContentsMargins(0, 0, 0, 0)
+
         self.verbose_check = QCheckBox("Verbose")
         self.verbose_check.setChecked(bool(settings.get("verbose", False)))
-        layout.addWidget(self.verbose_check)
+        opts_layout.addWidget(self.verbose_check)
 
         self.uv_sandbox_check = QCheckBox("Use uv Sandbox")
         self.uv_sandbox_check.setChecked(bool(settings.get("use_uv_sandbox", False)))
-        layout.addWidget(self.uv_sandbox_check)
+        opts_layout.addWidget(self.uv_sandbox_check)
 
         self.notify_check = QCheckBox("Notify")
         self.notify_check.setChecked(bool(settings.get("notify", False)))
-        layout.addWidget(self.notify_check)
+        opts_layout.addWidget(self.notify_check)
+        layout.addWidget(opts_row)
+
+        misc_row = QWidget()
+        misc_layout = QHBoxLayout(misc_row)
+        misc_layout.setContentsMargins(0, 0, 0, 0)
 
         self.no_project_doc_check = QCheckBox("No Project Doc")
         self.no_project_doc_check.setChecked(
             bool(settings.get("no_project_doc", False))
         )
-        layout.addWidget(self.no_project_doc_check)
+        misc_layout.addWidget(self.no_project_doc_check)
 
         self.disable_storage_check = QCheckBox("Disable Response Storage")
         self.disable_storage_check.setChecked(
             bool(settings.get("disable_response_storage", False))
         )
-        layout.addWidget(self.disable_storage_check)
+        misc_layout.addWidget(self.disable_storage_check)
 
         self.auto_scan_check = QCheckBox("Auto Scan Files")
         self.auto_scan_check.setChecked(bool(settings.get("auto_scan_files", True)))
-        layout.addWidget(self.auto_scan_check)
+        misc_layout.addWidget(self.auto_scan_check)
+        layout.addWidget(misc_row)
 
         layout.addWidget(QLabel("Free Credit Timeout (s):"))
         self.free_timeout_spin = QSpinBox()
@@ -263,7 +280,7 @@ class SettingsDialog(QDialog):
         provider = self.provider_combo.currentData() or "openai"
         info = providers.get(provider, {})
         env_var = info.get("envKey") or f"{provider.upper()}_API_KEY"
-        if provider not in {"local", "custom"} and env_var:
+        if provider not in (LOCAL_PROVIDERS | {"custom"}) and env_var:
             has_key = os.getenv(env_var) or os.getenv("OPENAI_API_KEY")
             if not has_key:
                 if prompt_for_key:
@@ -276,14 +293,14 @@ class SettingsDialog(QDialog):
             if not ensure_base_url(provider, info.get("baseURL"), self):
                 self.model_combo.clear()
                 return
-        if provider not in {"local", "custom"}:
+        if provider not in (LOCAL_PROVIDERS | {"custom"}):
             try:
                 models = get_available_models(provider)
             except Exception:
                 models = []
-        elif provider in {"local", "custom"}:
+        elif provider in (LOCAL_PROVIDERS | {"custom"}):
             models = []
-            if provider == "local":
+            if provider in LOCAL_PROVIDERS:
                 if shutil.which("ollama"):
                     commands = [
                         ["ollama", "list", "--json"],

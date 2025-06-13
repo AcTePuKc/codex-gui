@@ -29,6 +29,7 @@ from ..backend.settings_manager import save_settings
 from ..backend.model_manager import get_available_models
 from ..backend import codex_adapter
 from ..utils.api_key import ensure_api_key
+from .api_keys_dialog import ApiKeysDialog
 
 
 class SettingsDialog(QDialog):
@@ -86,18 +87,25 @@ class SettingsDialog(QDialog):
         layout.addWidget(self.max_spin)
 
         layout.addWidget(QLabel("Provider:"))
+        provider_row = QWidget()
+        provider_layout = QHBoxLayout(provider_row)
+        provider_layout.setContentsMargins(0, 0, 0, 0)
         self.provider_combo = QComboBox()
         self.provider_combo.addItem("OpenAI (Codex)", "openai")
         self.provider_combo.addItem("Local", "local")
         self.provider_combo.addItem("Custom", "custom")
+        self.manage_keys_btn = QPushButton("Manage API Keys")
         current_provider = settings.get("provider", "openai")
         index = self.provider_combo.findData(current_provider)
         if index >= 0:
             self.provider_combo.setCurrentIndex(index)
-        layout.addWidget(self.provider_combo)
+        provider_layout.addWidget(self.provider_combo)
+        provider_layout.addWidget(self.manage_keys_btn)
+        layout.addWidget(provider_row)
         self.provider_combo.currentIndexChanged.connect(
             lambda: self.load_models(prompt_for_key=True)
         )
+        self.manage_keys_btn.clicked.connect(self.manage_api_keys)
 
         layout.addWidget(QLabel("Model:"))
         model_row = QWidget()
@@ -464,3 +472,7 @@ class SettingsDialog(QDialog):
         )
         if directory:
             self.writable_root_edit.setText(directory)
+
+    def manage_api_keys(self) -> None:
+        """Open the API key manager dialog."""
+        ApiKeysDialog(self).exec()

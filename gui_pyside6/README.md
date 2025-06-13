@@ -101,6 +101,7 @@ to force a fresh setup or edit the `VENV_DIR` variable near the top of
 3. On Windows the installer will retry with `--registry=https://registry.npmmirror.com` if the initial global install fails.
 4. If you choose the **OpenAI** provider, the GUI prompts for an API key the first time you run a session or refresh models when `OPENAI_API_KEY` is not set. The dialog includes a **Remember key** checkbox which saves the key in `config/api_keys.json` so you don't need to enter it again.
 5. The prompt also offers a **Get API Key** link that opens the OpenAI account page so you can quickly generate a new key.
+6. Open **File -> Settings** and click **Manage API Keys** to update or delete saved entries.
 
 To set the key manually for the OpenAI provider:
 

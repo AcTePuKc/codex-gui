@@ -816,3 +816,11 @@ class MainWindow(QMainWindow):
         self.free_action.setEnabled(True)
         self.status_bar.showMessage(msg)
         self.debug_console.append_info(msg)
+        self.worker = None
+
+    def closeEvent(self, event) -> None:  # type: ignore[override]
+        """Handle the window closing."""
+        codex_adapter.stop_session()
+        if self.worker and self.worker.isRunning():
+            self.worker.wait(1000)
+        super().closeEvent(event)

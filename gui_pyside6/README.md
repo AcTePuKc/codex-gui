@@ -42,6 +42,12 @@ self.full_context_check = QCheckBox("Full Context")
   configured, the GUI will prompt for those values so you can quickly switch
   between multiple providers.
 
+Runtime settings from the dialog (quiet mode, full context, model choice, etc.)
+are persisted in `config/settings.json`. Provider overrides and any custom
+entries you add are written to `config/providers.json`. These files are created
+after the first launch and can be manually edited to tweak defaults outside of
+the GUI.
+
 ## Prerequisites
 
 - Python 3.9 or newer

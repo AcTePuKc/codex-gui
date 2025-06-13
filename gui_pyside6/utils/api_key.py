@@ -63,7 +63,7 @@ def ensure_api_key(provider: str, parent: QWidget | None = None) -> bool:
     if api_key:
         return True
 
-    dialog = ApiKeyDialog(parent)
+    dialog = ApiKeyDialog(provider, parent)
     if dialog.exec() == QDialog.Accepted:
         key = dialog.api_key()
         if key:

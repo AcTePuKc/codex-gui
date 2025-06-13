@@ -13,14 +13,15 @@ from PySide6.QtWidgets import (
 
 
 class ApiKeyDialog(QDialog):
-    """Dialog to request an OpenAI API key from the user."""
+    """Dialog to request an API key for a provider."""
 
-    def __init__(self, parent: QDialog | None = None) -> None:
+    def __init__(self, provider: str, parent: QDialog | None = None) -> None:
         super().__init__(parent)
-        self.setWindowTitle("Enter OpenAI API Key")
+        provider_title = provider.capitalize()
+        self.setWindowTitle(f"Enter {provider_title} API Key")
 
         layout = QVBoxLayout(self)
-        layout.addWidget(QLabel("Please enter your OpenAI API key:"))
+        layout.addWidget(QLabel(f"Please enter your {provider_title} API key:"))
 
         self.key_edit = QLineEdit()
         self.key_edit.setEchoMode(QLineEdit.Password)

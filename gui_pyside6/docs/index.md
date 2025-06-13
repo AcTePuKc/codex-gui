@@ -167,8 +167,9 @@ Security: No script is run unless the user explicitly clicks **Run**.
 ## File Context Detection
 
 At startup the GUI scans the current working directory for common source files
-(Python, JavaScript, Rust, etc.). Any discovered paths appear in a **Files** list
-below the image attachments.
+(Python, JavaScript, Rust, etc.) and automatically populates the **Files** list
+with any matches. This behaviour is controlled by the **Auto Scan Files**
+setting in the Settings dialog.
 
 Use **Add File** to include additional paths or **Remove** to exclude them.
 When a Codex session is launched these selected files are passed to the CLI via

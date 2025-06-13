@@ -113,12 +113,23 @@ set OPENAI_API_KEY=sk-your-key
 
 Under the **Help** menu you can run two useful commands (only needed when using the OpenAI provider):
 
-- **Login** – launches `codex --login` and opens a browser window to authenticate
+- **Login** - launches `codex --login` and opens a browser window to authenticate
   your OpenAI account.
-- **Redeem Free Credits** – runs `codex --free` to claim any promotional credits
+- **Redeem Free Credits** - runs `codex --free` to claim any promotional credits
   that may be available.
 
 The command output is shown in the main panel and logged in the Debug Console.
+
+## Troubleshooting
+
+### CLI not detected
+
+If running `codex --help` works in a terminal but the GUI reports that it cannot
+find **Codex CLI**, open **File -> Settings** and enter the full path to the
+`codex` executable (or `codex.cmd` on Windows). When installed with **pnpm** the
+binary is usually located under `~/.local/share/pnpm` on Linux/macOS or
+`C:\Users\NAME\AppData\Local\pnpm` on Windows. Pointing the setting to this
+file ensures the GUI can launch the CLI correctly.
 
 ---
 
@@ -168,7 +179,7 @@ Detailed logs from Codex and tool executions are also sent to the dockable **Deb
 ## Debug Console
 
 The console is a dockable pane that captures stdout and stderr from Codex and
-any running tools. Toggle it from **View → Debug Console**. The window offers
+any running tools. Toggle it from **View -> Debug Console**. The window offers
 **Info** and **Errors** checkboxes to filter messages and a **Clear** button to
 reset the log.
 
@@ -196,7 +207,7 @@ Some plugins rely on optional TTS backends. These dependencies are installed on 
 
 ## Plugin Manager
 
-Use **Plugins → Plugin Manager** to enable or disable optional plugins from the
+Use **Plugins -> Plugin Manager** to enable or disable optional plugins from the
 GUI. The dialog lists each entry from `plugins/manifest.json` with a checkbox.
 Click **Save** to persist your selection and reload the plugins immediately.
 

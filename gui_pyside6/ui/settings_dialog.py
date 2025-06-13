@@ -31,6 +31,7 @@ from ..backend.settings_manager import save_settings
 from ..backend.model_manager import get_available_models
 from ..backend import codex_adapter
 from ..utils.api_key import ensure_api_key, ensure_base_url
+from ..utils import create_codex_cmd, path_in_env
 from .api_keys_dialog import ApiKeysDialog
 from .. import logger
 
@@ -174,6 +175,10 @@ class SettingsDialog(QDialog):
         cli_layout.addWidget(browse_btn)
         cli_layout.addWidget(check_btn)
         layout.addWidget(cli_row)
+        if os.name == "nt":
+            create_cmd_btn = QPushButton("Create codex.cmd...")
+            create_cmd_btn.clicked.connect(self.create_codex_cmd_file)
+            layout.addWidget(create_cmd_btn)
 
         self.verbose_check = QCheckBox("Verbose")
         self.verbose_check.setChecked(bool(settings.get("verbose", False)))
@@ -492,6 +497,23 @@ class SettingsDialog(QDialog):
         )
         if directory:
             self.writable_root_edit.setText(directory)
+
+    def create_codex_cmd_file(self) -> None:
+        """Create a ``codex.cmd`` wrapper in a chosen directory (Windows)."""
+        directory = QFileDialog.getExistingDirectory(
+            self,
+            "Select Directory for codex.cmd",
+            str(Path.home()),
+        )
+        if not directory:
+            return
+        path = create_codex_cmd(directory)
+        message = f"Created {path}"
+        if not path_in_env(directory):
+            message += (
+                "\n\nAdd this directory to your PATH to invoke 'codex' from any terminal."
+            )
+        QMessageBox.information(self, "codex.cmd Created", message)
 
     def manage_api_keys(self) -> None:
         """Open the API key manager dialog."""

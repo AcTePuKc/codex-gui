@@ -529,7 +529,7 @@ class MainWindow(QMainWindow):
         self.update_agent_description()
 
     def open_settings_dialog(self) -> None:
-        dialog = SettingsDialog(self.settings, self)
+        dialog = SettingsDialog(self.settings, self, debug_console=self.debug_console)
         dialog.exec()
         self.status_bar.showMessage("Settings updated")
 

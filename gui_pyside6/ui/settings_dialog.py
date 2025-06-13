@@ -19,6 +19,8 @@ from PySide6.QtWidgets import (
 
 import json
 import os
+import shutil
+import subprocess
 from pathlib import Path
 from urllib import request
 
@@ -100,9 +102,7 @@ class SettingsDialog(QDialog):
         model_layout.setContentsMargins(0, 0, 0, 0)
         self.model_combo = QComboBox()
         refresh_btn = QPushButton("Refresh")
-        refresh_btn.clicked.connect(
-            lambda: self.load_models(prompt_for_key=True)
-        )
+        refresh_btn.clicked.connect(lambda: self.load_models(prompt_for_key=True))
         model_layout.addWidget(self.model_combo)
         model_layout.addWidget(refresh_btn)
         layout.addWidget(model_row)
@@ -223,21 +223,53 @@ class SettingsDialog(QDialog):
         elif provider in {"local", "custom"}:
             models = []
             if provider == "local":
-                search_paths = [
-                    Path(os.getenv("LOCAL_MODELS_DIR", "")),
-                    Path.home() / ".codex" / "models",
-                    Path.cwd() / "models",
-                ]
-                for base in search_paths:
-                    if not base:
-                        continue
+                if shutil.which("ollama"):
                     try:
-                        for entry in base.expanduser().iterdir():
-                            if entry.is_dir():
-                                models.append(entry.name)
-                    except FileNotFoundError:
-                        continue
-                models = sorted(set(models))
+                        result = subprocess.run(
+                            ["ollama", "list", "--json"],
+                            capture_output=True,
+                            text=True,
+                            timeout=5,
+                            check=False,
+                        )
+                        for line in result.stdout.splitlines():
+                            try:
+                                data = json.loads(line)
+                            except json.JSONDecodeError:
+                                continue
+                            name = data.get("name")
+                            if isinstance(name, str):
+                                models.append(name)
+                    except Exception:
+                        pass
+
+                if not models:
+                    search_paths = [
+                        Path(os.getenv("LOCAL_MODELS_DIR", "")),
+                        Path.home() / ".codex" / "models",
+                        Path.cwd() / "models",
+                    ]
+                    valid_ext = {".bin", ".gguf"}
+                    for base in search_paths:
+                        if not base:
+                            continue
+                        try:
+                            for entry in base.expanduser().iterdir():
+                                if entry.is_dir():
+                                    if any(
+                                        f.suffix.lower() in valid_ext
+                                        for f in entry.iterdir()
+                                        if f.is_file()
+                                    ):
+                                        models.append(entry.name)
+                                elif (
+                                    entry.is_file()
+                                    and entry.suffix.lower() in valid_ext
+                                ):
+                                    models.append(entry.stem)
+                        except FileNotFoundError:
+                            continue
+                    models = sorted(set(models))
             else:
                 base_url = os.getenv("CUSTOM_MODELS_URL") or os.getenv(
                     "CUSTOM_BASE_URL"

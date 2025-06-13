@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QFileDialog,
     QCheckBox,
+    QScrollArea,
     QWidget,
 )
 
@@ -34,7 +35,16 @@ class SettingsDialog(QDialog):
         self.settings = settings
         self.setWindowTitle("Settings")
 
-        layout = QVBoxLayout(self)
+        self.resize(480, 600)
+
+        main_layout = QVBoxLayout(self)
+
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_widget = QWidget()
+        layout = QVBoxLayout(scroll_widget)
+        scroll_area.setWidget(scroll_widget)
+        main_layout.addWidget(scroll_area)
 
         layout.addWidget(QLabel("Temperature:"))
         self.temp_spin = QDoubleSpinBox()
@@ -185,7 +195,7 @@ class SettingsDialog(QDialog):
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
-        layout.addWidget(buttons)
+        main_layout.addWidget(buttons)
 
     def load_models(self) -> None:
         """Populate the model combo box based on the selected provider."""

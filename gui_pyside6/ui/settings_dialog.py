@@ -281,17 +281,44 @@ class SettingsDialog(QDialog):
                                 timeout=5,
                                 check=False,
                             )
-                            if result.stderr:
-                                for line in result.stderr.splitlines():
-                                    logger.error(line)
-                            try:
-                                data = json.loads(result.stdout)
-                            except json.JSONDecodeError:
-                                data = {}
-                            for item in data.get("models", []):
-                                name = item.get("name") or item.get("model")
-                                if name:
-                                    models.append(name)
+                            stderr_lower = (result.stderr or "").lower()
+                            unknown_flag = "unknown flag" in stderr_lower
+                            if unknown_flag or result.returncode != 0:
+                                if result.stderr:
+                                    for line in result.stderr.splitlines():
+                                        if "unknown flag" not in line.lower():
+                                            logger.error(line)
+                                fallback = cmd[:2]
+                                logger.info("$ " + " ".join(fallback))
+                                result = subprocess.run(
+                                    fallback,
+                                    capture_output=True,
+                                    text=True,
+                                    timeout=5,
+                                    check=False,
+                                )
+                                if result.stderr:
+                                    for line in result.stderr.splitlines():
+                                        logger.error(line)
+                                for line in result.stdout.splitlines():
+                                    line = line.strip()
+                                    if not line or line.lower().startswith("name"):
+                                        continue
+                                    name = line.split()[0]
+                                    if name:
+                                        models.append(name)
+                            else:
+                                if result.stderr:
+                                    for line in result.stderr.splitlines():
+                                        logger.error(line)
+                                try:
+                                    data = json.loads(result.stdout)
+                                except json.JSONDecodeError:
+                                    data = {}
+                                for item in data.get("models", []):
+                                    name = item.get("name") or item.get("model")
+                                    if name:
+                                        models.append(name)
                             if models:
                                 break
                         except Exception as exc:  # pylint: disable=broad-except

@@ -45,7 +45,7 @@ Codex-GUI is designed for developers who want a more interactive experience with
 
 ```bash
 uv pip install -r requirements.uv.in
-./run_pyside6.sh  # Windows: run_pyside6.bat
+./run.sh  # Windows: run.bat
 ```
 On Windows the batch script will retry the Codex CLI install using `registry.npmmirror.com` if the first attempt fails.
 
@@ -53,7 +53,7 @@ The launcher creates `~/.hybrid_tts/venv` (Windows: `%USERPROFILE%\.hybrid_tts\v
 on first run if no virtual environment is active and reuses it on subsequent
 launches. Dependencies are only reinstalled when `requirements.uv.in` changes.
 Delete this folder to start fresh or edit the `VENV_DIR` variable in
-`run_pyside6.*` to move it elsewhere.
+`run.*` to move it elsewhere.
 
 ---
 

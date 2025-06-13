@@ -36,7 +36,7 @@ Optional: use `run_uv.bat` or `run_uv.sh` to automatically configure a new envir
 
 ```bash
 uv pip install -e .
-./run_pyside6.sh  # Windows: run_pyside6.bat
+./run.sh  # Windows: run.bat
 ```
 
 ---
@@ -47,8 +47,8 @@ uv pip install -e .
 codex-gui/
 |-- gui_pyside6/
 |   |-- main.py             # Entry point
-|   |-- run_pyside6.sh      # Unix launcher
-|   |-- run_pyside6.bat     # Windows launcher
+|   |-- run.sh      # Unix launcher
+|   |-- run.bat     # Windows launcher
 |   |-- ui/                 # UI classes (PySide6)
 |   |-- backend/            # Codex adapters, tool runners
 |   |-- utils/              # Shared helpers

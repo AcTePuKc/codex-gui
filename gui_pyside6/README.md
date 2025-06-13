@@ -55,7 +55,7 @@ Codex CLI is a Node/TypeScript project that must be built once with `pnpm build`
 
 The launch scripts automatically choose `pnpm` when it is available and fall back
 to `npm` otherwise. On Windows you can see this logic in
-`run_pyside6.bat`:
+`run.bat`:
 
 ```bat
 where pnpm >nul 2>&1
@@ -82,7 +82,7 @@ the command is available on your `PATH`.
 ```bash
 git clone https://github.com/AcTePuKc/codex-gui
 cd codex-gui/gui_pyside6
-./run_pyside6.sh  # Windows: run_pyside6.bat
+./run.sh  # Windows: run.bat
 ````
 
 > Requires Python 3.9+
@@ -94,11 +94,11 @@ then launches the GUI in a separate terminal window. This environment persists
 for future runs and a `.deps_installed` file prevents reinstalling packages
 unless `requirements.uv.in` changes. Delete the `~/.hybrid_tts/venv` directory
 to force a fresh setup or edit the `VENV_DIR` variable near the top of
-`run_pyside6.*` if you wish to relocate it.
+`run.*` if you wish to relocate it.
 
 ## First-Time Setup
 
-1. Run `./run_pyside6.sh` (Windows: `run_pyside6.bat`).
+1. Run `./run.sh` (Windows: `run.bat`).
 2. The script installs **Codex CLI** automatically with `npm install -g @openai/codex` if it is not already present.
 3. On Windows the installer will retry with `--registry=https://registry.npmmirror.com` if the initial global install fails.
 4. If you choose the **OpenAI** provider, the GUI prompts for an API key the first time you run a session or refresh models when `OPENAI_API_KEY` is not set.
@@ -140,8 +140,8 @@ These components are developed separately but communicate via a common API/backe
 codex-gui/
 |-- gui_pyside6/
 |   |-- main.py
-|   |-- run_pyside6.sh
-|   |-- run_pyside6.bat
+|   |-- run.sh
+|   |-- run.bat
 |   |-- ui/                   # UI components
 |   |-- backend/              # Logic & CLI adapters
 |   |-- utils/                # Helper functions

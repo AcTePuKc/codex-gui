@@ -16,7 +16,6 @@ from PySide6.QtWidgets import (
 )
 
 from ..backend.tool_runner import run_tool_script
-from .. import logger
 
 
 class ToolsPanel(QDialog):
@@ -84,16 +83,9 @@ class ToolsPanel(QDialog):
             return
         script_path = self.tools_dir() / item.text()
         backend_name = self.backend_combo.currentData()
-        def log_fn(text: str, level: str) -> None:
-            if level == "error":
-                logger.error(text)
-            else:
-                logger.info(text)
-
         _, stdout, stderr = run_tool_script(
             script_path,
             backend_name=backend_name,
-            log_fn=log_fn,
         )
         self.output_view.clear()
         if stdout:

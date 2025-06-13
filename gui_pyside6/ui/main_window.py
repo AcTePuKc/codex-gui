@@ -822,7 +822,9 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event) -> None:  # type: ignore[override]
         """Handle the window closing."""
-        codex_adapter.stop_session()
         if self.worker and self.worker.isRunning():
-            self.worker.wait(1000)
+            # If a Codex session or command is running, stop it first
+            self.stop_codex()
+            # Ensure the worker thread has fully finished
+            self.worker.wait()
         super().closeEvent(event)

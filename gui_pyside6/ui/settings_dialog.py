@@ -32,9 +32,10 @@ from ..utils.api_key import ensure_api_key
 class SettingsDialog(QDialog):
     """Dialog for modifying runtime settings."""
 
-    def __init__(self, settings: dict, parent: QWidget | None = None) -> None:
+    def __init__(self, settings: dict, parent: QWidget | None = None, debug_console=None) -> None:
         super().__init__(parent)
         self.settings = settings
+        self.debug_console = debug_console
         self.setWindowTitle("Settings")
 
         self.resize(480, 600)
@@ -224,24 +225,63 @@ class SettingsDialog(QDialog):
             models = []
             if provider == "local":
                 if shutil.which("ollama"):
-                    try:
-                        result = subprocess.run(
-                            ["ollama", "list", "--json"],
-                            capture_output=True,
-                            text=True,
-                            timeout=5,
-                            check=False,
-                        )
-                        for line in result.stdout.splitlines():
-                            try:
-                                data = json.loads(line)
-                            except json.JSONDecodeError:
-                                continue
-                            name = data.get("name")
-                            if isinstance(name, str):
-                                models.append(name)
-                    except Exception:
-                        pass
+                    commands = [["ollama", "list", "--json"], ["ollama", "ls", "--json"]]
+                    for cmd in commands:
+                        if self.debug_console:
+                            self.debug_console.append_info("$ " + " ".join(cmd))
+                        try:
+                            result = subprocess.run(
+                                cmd,
+                                capture_output=True,
+                                text=True,
+                                timeout=5,
+                                check=False,
+                            )
+                            if result.stderr and self.debug_console:
+                                for line in result.stderr.splitlines():
+                                    self.debug_console.append_error(line)
+                            for line in result.stdout.splitlines():
+                                try:
+                                    data = json.loads(line)
+                                except json.JSONDecodeError:
+                                    continue
+                                name = data.get("name")
+                                if isinstance(name, str):
+                                    models.append(name)
+                            if models:
+                                break
+                        except Exception as exc:  # pylint: disable=broad-except
+                            if self.debug_console:
+                                self.debug_console.append_error(str(exc))
+
+                    if self.debug_console:
+                        cmd = ["ollama", "ps", "--json"]
+                        self.debug_console.append_info("$ " + " ".join(cmd))
+                        try:
+                            result = subprocess.run(
+                                cmd,
+                                capture_output=True,
+                                text=True,
+                                timeout=5,
+                                check=False,
+                            )
+                            if result.stderr:
+                                for line in result.stderr.splitlines():
+                                    self.debug_console.append_error(line)
+                            for line in result.stdout.splitlines():
+                                try:
+                                    data = json.loads(line)
+                                except json.JSONDecodeError:
+                                    continue
+                                name = data.get("name")
+                                status = data.get("status")
+                                if name:
+                                    msg = f"Running model: {name}"
+                                    if status:
+                                        msg += f" ({status})"
+                                    self.debug_console.append_info(msg)
+                        except Exception as exc:  # pylint: disable=broad-except
+                            self.debug_console.append_error(str(exc))
 
                 if not models:
                     search_paths = [

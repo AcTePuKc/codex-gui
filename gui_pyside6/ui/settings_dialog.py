@@ -110,15 +110,7 @@ class SettingsDialog(QDialog):
         provider_layout.addWidget(self.provider_combo)
         provider_layout.addWidget(self.manage_keys_btn)
         provider_layout.addWidget(self.manage_providers_btn)
-        self.refresh_providers()
-        layout.addWidget(provider_row)
-        self.provider_combo.currentIndexChanged.connect(
-            lambda: self.load_models(prompt_for_key=True)
-        )
-        self.manage_keys_btn.clicked.connect(self.manage_api_keys)
-        self.manage_providers_btn.clicked.connect(self.manage_providers)
 
-        layout.addWidget(QLabel("Model:"))
         model_row = QWidget()
         model_layout = QHBoxLayout(model_row)
         model_layout.setContentsMargins(0, 0, 0, 0)
@@ -127,6 +119,17 @@ class SettingsDialog(QDialog):
         refresh_btn.clicked.connect(lambda: self.load_models(prompt_for_key=True))
         model_layout.addWidget(self.model_combo)
         model_layout.addWidget(refresh_btn)
+
+        self.refresh_providers()
+
+        layout.addWidget(provider_row)
+        self.provider_combo.currentIndexChanged.connect(
+            lambda: self.load_models(prompt_for_key=True)
+        )
+        self.manage_keys_btn.clicked.connect(self.manage_api_keys)
+        self.manage_providers_btn.clicked.connect(self.manage_providers)
+
+        layout.addWidget(QLabel("Model:"))
         layout.addWidget(model_row)
         self.load_models()
 

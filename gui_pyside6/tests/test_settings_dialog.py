@@ -142,3 +142,15 @@ def test_provider_selection_persists_and_loads_models(monkeypatch):
 
     assert dialog.provider_combo.currentData() == "ollama"
     assert dialog.model_combo.findText("ollama-model") >= 0
+
+def test_load_models_called_after_model_combo_created(monkeypatch):
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+    settings = {"provider": "openai", "providers": {"openai": {"name": "OpenAI"}}}
+
+    def fake_load_models(self, prompt_for_key=False):
+        assert hasattr(self, "model_combo")
+
+    monkeypatch.setattr(SettingsDialog, "load_models", fake_load_models)
+
+    SettingsDialog(settings)

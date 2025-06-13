@@ -144,6 +144,10 @@ file ensures the GUI can launch the CLI correctly.
 If no executable is found, the GUI will try `npx codex --help`. When successful
 it automatically uses `npx codex --no-update-notifier` as the command.
 
+On Windows you can also create a simple `codex.cmd` wrapper via **File -> Settings**.
+It calls `npx codex --no-update-notifier` so the CLI is accessible from any
+terminal. Add the chosen directory to your `PATH` if needed.
+
 ---
 
 ## Project Structure

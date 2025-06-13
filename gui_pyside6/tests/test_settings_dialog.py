@@ -32,6 +32,30 @@ def test_load_models_parses_json(monkeypatch):
     assert "test-model" in models
 
 
+def test_load_models_parses_plain_text(monkeypatch):
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+    app = QApplication.instance() or QApplication([])
+    settings = {"provider": "local", "providers": {"local": {"name": "Local"}}}
+
+    monkeypatch.setattr(shutil, "which", lambda x: "/usr/bin/ollama")
+
+    def fake_run(cmd, capture_output=True, text=True, timeout=5, check=False):
+        if cmd == ["ollama", "list", "--json"]:
+            return subprocess.CompletedProcess(cmd, 1, stdout="", stderr="unknown flag: --json")
+        if cmd == ["ollama", "list"]:
+            stdout = "NAME ID SIZE MODIFIED\nqwen3:8b abc123 5 GB 2 days ago\n"
+            return subprocess.CompletedProcess(cmd, 0, stdout=stdout, stderr="")
+        if cmd[0:2] == ["ollama", "ps"]:
+            return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    dialog = SettingsDialog(settings)
+    models = [dialog.model_combo.itemText(i) for i in range(dialog.model_combo.count())]
+    assert "qwen3:8b" in models
+
+
 def test_cli_command_with_spaces_preserved(monkeypatch):
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
     app = QApplication.instance() or QApplication([])

@@ -5,7 +5,6 @@ from __future__ import annotations
 import subprocess
 import os
 from collections.abc import Iterable
-from pathlib import Path
 
 
 class CodexError(RuntimeError):
@@ -36,10 +35,9 @@ _terminated: bool = False
 def ensure_cli_available(settings: dict | None = None) -> None:
     """Verify that the Codex CLI is accessible.
 
-    The user-configured ``cli_path`` is attempted first. If that fails,
-    the system ``codex`` command and finally the bundled Node.js script are
-    checked. On failure a ``FileNotFoundError`` is raised with a helpful
-    message.
+    The user-configured ``cli_path`` is attempted first. If that fails, the
+    system ``codex`` command is checked. On failure a ``FileNotFoundError`` is
+    raised with a helpful message.
     """
 
     settings = settings or {}
@@ -71,22 +69,10 @@ def ensure_cli_available(settings: dict | None = None) -> None:
     except (FileNotFoundError, subprocess.CalledProcessError):
         pass
 
-    # Fall back to local Node.js script
-    root = Path(__file__).resolve().parents[2]
-    cli_js = root / "codex-cli" / "bin" / "codex.js"
-    try:
-        subprocess.run(
-            ["node", str(cli_js), "--help"],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            check=True,
-            text=True,
-        )
-    except (FileNotFoundError, subprocess.CalledProcessError) as exc:
-        raise FileNotFoundError(
-            "Codex CLI is missing. Run 'pnpm build' in the codex-cli directory "
-            "or add 'codex' to your PATH."
-        ) from exc
+    raise FileNotFoundError(
+        "Codex CLI is missing. Install it globally with 'npm install -g @openai/codex' "
+        "or add 'codex' to your PATH."
+    )
 
 
 def build_command(

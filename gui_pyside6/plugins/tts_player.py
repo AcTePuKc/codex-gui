@@ -1,4 +1,8 @@
-"""Plugin that speaks text using gTTS."""
+"""Plugin that speaks text using gTTS.
+
+The *Speak* button now reads the most recent line from ``window.output_view``.
+If the output is empty, it falls back to the current prompt text.
+"""
 
 from __future__ import annotations
 
@@ -38,7 +42,10 @@ def register(window) -> None:
     player.playbackStateChanged.connect(on_state_changed)
 
     def on_click() -> None:
-        text = window.prompt_edit.toPlainText().strip()
+        lines = window.output_view.toPlainText().strip().splitlines()
+        text = lines[-1] if lines else ""
+        if not text:
+            text = window.prompt_edit.toPlainText().strip()
         if not text:
             return
 

@@ -24,6 +24,7 @@ This project reimagines the Codex CLI as a desktop application, offering:
 - Runtime settings for temperature, model, provider, penalties and more passed as CLI flags
 - Remembers the last selected agent across restarts
 - Optional verbose mode prints the exact CLI command before execution
+- Use uv Sandbox to run the CLI via `uv run` for extra isolation
 - Quiet mode hides progress output while Full Context sends the entire conversation. Both map to the CLI flags `--quiet` and `--full-context`
 - Dockable **Debug Console** shows stdout/stderr from Codex and tool runs
 - Show or hide the left and right panels, or the Debug Console, from the **View** menu

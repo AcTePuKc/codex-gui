@@ -103,6 +103,7 @@ mode, set the reasoning effort, and enable flex mode.
 Enable **Verbose Mode** in the settings dialog to print the final CLI command before each run.
 Quiet mode suppresses progress output and reduces logging noise. Full Context passes the entire chat history to the CLI using the `--full-context` flag.
 To enable these modes, tick **Quiet Mode** or **Full Context** in the Settings dialog.
+Enable **Use uv Sandbox** to run the CLI via `uv run` for extra isolation.
 ```python
 self.quiet_check = QCheckBox("Quiet Mode")
 self.full_context_check = QCheckBox("Full Context")
@@ -256,7 +257,7 @@ Open **Plugins -> Plugin Manager** to enable or disable optional plugins listed 
 - [x] Run CLI subprocess and parse output
 - [x] Add file-aware completions
 - [x] Build debug panel (logs, errors, console)
-- [ ] Execution in `uv` sandbox
+- [x] Execution in `uv` sandbox
 - [x] Plugin manager
 - [x] Drag-and-drop file attachments
 - [x] Quiet & full-context CLI flags

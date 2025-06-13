@@ -198,6 +198,10 @@ class SettingsDialog(QDialog):
         self.verbose_check.setChecked(bool(settings.get("verbose", False)))
         layout.addWidget(self.verbose_check)
 
+        self.uv_sandbox_check = QCheckBox("Use uv Sandbox")
+        self.uv_sandbox_check.setChecked(bool(settings.get("use_uv_sandbox", False)))
+        layout.addWidget(self.uv_sandbox_check)
+
         self.notify_check = QCheckBox("Notify")
         self.notify_check.setChecked(bool(settings.get("notify", False)))
         layout.addWidget(self.notify_check)
@@ -490,6 +494,7 @@ class SettingsDialog(QDialog):
         self.settings["full_context"] = self.full_context_check.isChecked()
         self.settings["cli_path"] = self.cli_edit.text().strip()
         self.settings["verbose"] = self.verbose_check.isChecked()
+        self.settings["use_uv_sandbox"] = self.uv_sandbox_check.isChecked()
         self.settings["notify"] = self.notify_check.isChecked()
         self.settings["no_project_doc"] = self.no_project_doc_check.isChecked()
         self.settings["disable_response_storage"] = (

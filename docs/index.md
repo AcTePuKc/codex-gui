@@ -22,4 +22,6 @@ At startup the PySide6 app scans the current working directory for common source
 
 Use **Add File** to include additional paths or **Remove** to exclude them. When a Codex session is launched these selected files are passed to the CLI via `--file` flags so Codex can read them as context.
 
+The GUI can also wrap the CLI with `uv run` by enabling **Use uv Sandbox** in the Settings dialog.
+
 See the [PySide6 docs](../gui_pyside6/docs/index.md) for full details.

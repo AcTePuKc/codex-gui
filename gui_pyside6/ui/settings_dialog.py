@@ -35,6 +35,11 @@ from ..utils import create_codex_cmd, path_in_env
 from .api_keys_dialog import ApiKeysDialog
 from .. import logger
 
+from typing import Optional
+
+# cache whether `ollama ps --json` is supported
+_OLLAMA_PS_JSON: Optional[bool] = None
+
 
 class SettingsDialog(QDialog):
     """Dialog for modifying runtime settings."""
@@ -324,7 +329,11 @@ class SettingsDialog(QDialog):
                         except Exception as exc:  # pylint: disable=broad-except
                             logger.error(str(exc))
 
-                    cmd = ["ollama", "ps", "--json"]
+                    global _OLLAMA_PS_JSON
+                    cmd = ["ollama", "ps"]
+                    use_json = _OLLAMA_PS_JSON is not False
+                    if use_json:
+                        cmd.append("--json")
                     logger.info("$ " + " ".join(cmd))
                     try:
                         result = subprocess.run(
@@ -336,7 +345,9 @@ class SettingsDialog(QDialog):
                         )
                         stderr_lower = (result.stderr or "").lower()
                         unknown_flag = "unknown flag" in stderr_lower
-                        if unknown_flag or result.returncode != 0:
+                        if use_json and (unknown_flag or result.returncode != 0):
+                            if _OLLAMA_PS_JSON is None and unknown_flag:
+                                _OLLAMA_PS_JSON = False
                             if result.stderr:
                                 for line in result.stderr.splitlines():
                                     if "unknown flag" not in line.lower():
@@ -359,20 +370,29 @@ class SettingsDialog(QDialog):
                                     continue
                                 logger.info(line)
                         else:
+                            if use_json and _OLLAMA_PS_JSON is None:
+                                _OLLAMA_PS_JSON = True
                             for line in result.stderr.splitlines():
                                 logger.error(line)
-                            for line in result.stdout.splitlines():
-                                try:
-                                    data = json.loads(line)
-                                except json.JSONDecodeError:
-                                    continue
-                                name = data.get("name")
-                                status = data.get("status")
-                                if name:
-                                    msg = f"Running model: {name}"
-                                    if status:
-                                        msg += f" ({status})"
-                                    logger.info(msg)
+                            if use_json:
+                                for line in result.stdout.splitlines():
+                                    try:
+                                        data = json.loads(line)
+                                    except json.JSONDecodeError:
+                                        continue
+                                    name = data.get("name")
+                                    status = data.get("status")
+                                    if name:
+                                        msg = f"Running model: {name}"
+                                        if status:
+                                            msg += f" ({status})"
+                                        logger.info(msg)
+                            else:
+                                for line in result.stdout.splitlines():
+                                    line = line.strip()
+                                    if not line or line.lower().startswith("name"):
+                                        continue
+                                    logger.info(line)
                     except Exception as exc:  # pylint: disable=broad-except
                         logger.error(str(exc))
 

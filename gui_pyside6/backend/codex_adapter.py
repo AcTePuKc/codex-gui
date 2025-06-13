@@ -126,11 +126,15 @@ def build_command(
     settings = settings or {}
 
     cli_exe = settings.get("cli_path") or "codex"
-    cmd: list[str] = [cli_exe]
+    cmd: list[str] = [str(cli_exe)]
 
     def add_flag(flag: str, value: object | None) -> None:
-        if value is not None and str(value) != "":
-            cmd.extend([flag, str(value)])
+        """Safely append a flag and value to the command list."""
+        if value is None or isinstance(value, bool):
+            return
+        value_str = str(value)
+        if value_str:
+            cmd.extend([flag, value_str])
 
     if "temperature" in agent:
         add_flag("--temperature", agent["temperature"])
@@ -177,24 +181,41 @@ def build_command(
             cmd.append(flag)
 
     writable_root = agent.get("writable_root", settings.get("writable_root"))
-    if writable_root:
+    if writable_root and not isinstance(writable_root, bool):
         if isinstance(writable_root, str):
             roots = [r for r in writable_root.split(os.pathsep) if r]
         else:
-            roots = list(writable_root)
+            try:
+                roots = list(writable_root)
+            except TypeError:
+                roots = []
         for root_path in roots:
-            cmd.extend(["--writable-root", str(root_path)])
+            if root_path is None or isinstance(root_path, bool):
+                continue
+            root_str = str(root_path)
+            if root_str:
+                cmd.extend(["--writable-root", root_str])
 
-    if view:
-        cmd.extend(["--view", view])
+    if view and not isinstance(view, bool):
+        view_str = str(view)
+        if view_str:
+            cmd.extend(["--view", view_str])
 
     if images:
         for img in images:
-            cmd.extend(["--image", img])
+            if not img or isinstance(img, bool):
+                continue
+            img_str = str(img)
+            if img_str:
+                cmd.extend(["--image", img_str])
 
     if files:
         for path in files:
-            cmd.extend(["--file", path])
+            if not path or isinstance(path, bool):
+                continue
+            path_str = str(path)
+            if path_str:
+                cmd.extend(["--file", path_str])
 
     cmd.append(prompt)
     return cmd

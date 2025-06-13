@@ -446,6 +446,7 @@ class MainWindow(QMainWindow):
     ) -> None:
         if self.worker and self.worker.isRunning():
             return
+
         def log_fn(text: str, level: str = "info") -> None:
             if level == "error":
                 self.debug_console.append_error(text)
@@ -495,8 +496,8 @@ class MainWindow(QMainWindow):
             cwd=cwd_arg,
         )
         if self.settings.get("verbose"):
-            self.append_output("$ " + " ".join(map(str, cmd)))
-        self.debug_console.append_info("$ " + " ".join(map(str, cmd)))
+            self.append_output("$ " + " ".join(cmd))
+        self.debug_console.append_info("$ " + " ".join(cmd))
         self.worker = CodexWorker(
             prompt_text,
             agent,
@@ -759,12 +760,18 @@ class MainWindow(QMainWindow):
         if not agent:
             return
         if self.agent_manager.is_default(agent):
-            QMessageBox.information(self, "Default Agent", "Default presets cannot be renamed.")
+            QMessageBox.information(
+                self, "Default Agent", "Default presets cannot be renamed."
+            )
             return
-        new_name, ok = QInputDialog.getText(self, "Rename Agent", "New name:", text=agent.get("name", ""))
+        new_name, ok = QInputDialog.getText(
+            self, "Rename Agent", "New name:", text=agent.get("name", "")
+        )
         if not ok or not new_name:
             return
-        new_path = Path(agent.get("_path", "")).with_name(new_name.lower().replace(" ", "_") + ".json")
+        new_path = Path(agent.get("_path", "")).with_name(
+            new_name.lower().replace(" ", "_") + ".json"
+        )
         try:
             self.agent_manager.rename_agent(agent, new_path)
         except Exception as exc:  # pylint: disable=broad-except
@@ -782,13 +789,18 @@ class MainWindow(QMainWindow):
         if not agent:
             return
         if self.agent_manager.is_default(agent):
-            QMessageBox.information(self, "Default Agent", "Default presets cannot be deleted.")
+            QMessageBox.information(
+                self, "Default Agent", "Default presets cannot be deleted."
+            )
             return
-        if QMessageBox.question(
-            self,
-            "Delete Agent",
-            f"Delete '{agent.get('name', '')}'?",
-        ) != QMessageBox.Yes:
+        if (
+            QMessageBox.question(
+                self,
+                "Delete Agent",
+                f"Delete '{agent.get('name', '')}'?",
+            )
+            != QMessageBox.Yes
+        ):
             return
         try:
             self.agent_manager.delete_agent(agent)
@@ -854,6 +866,7 @@ class MainWindow(QMainWindow):
     def _run_cli_command(self, fn, done_msg: str) -> None:
         if self.worker and self.worker.isRunning():
             return
+
         def log_fn(text: str, level: str = "info") -> None:
             if level == "error":
                 self.debug_console.append_error(text)

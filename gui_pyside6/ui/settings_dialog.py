@@ -154,6 +154,12 @@ class SettingsDialog(QDialog):
         self.reason_combo.setCurrentText(settings.get("reasoning", "high"))
         layout.addWidget(self.reason_combo)
 
+        layout.addWidget(QLabel("Theme:"))
+        self.theme_combo = QComboBox()
+        self.theme_combo.addItems(["System", "Light", "Dark"])
+        self.theme_combo.setCurrentText(settings.get("theme", "System"))
+        layout.addWidget(self.theme_combo)
+
         self.flex_check = QCheckBox("Flex Mode")
         self.flex_check.setChecked(bool(settings.get("flex_mode", False)))
         layout.addWidget(self.flex_check)
@@ -478,6 +484,7 @@ class SettingsDialog(QDialog):
         self.settings["auto_edit"] = approval == "auto-edit"
         self.settings["full_auto"] = approval == "full-auto"
         self.settings["reasoning"] = self.reason_combo.currentText()
+        self.settings["theme"] = self.theme_combo.currentText()
         self.settings["flex_mode"] = self.flex_check.isChecked()
         self.settings["quiet"] = self.quiet_check.isChecked()
         self.settings["full_context"] = self.full_context_check.isChecked()

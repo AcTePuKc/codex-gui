@@ -6,7 +6,7 @@ import os
 import subprocess
 import shutil
 from pathlib import Path
-from collections.abc import Iterable
+from collections.abc import Iterable, Callable
 
 from .settings_manager import save_settings
 
@@ -36,7 +36,10 @@ _current_process: subprocess.Popen[str] | None = None
 _terminated: bool = False
 
 
-def ensure_cli_available(settings: dict | None = None) -> None:
+def ensure_cli_available(
+    settings: dict | None = None,
+    log_fn: Callable[[str, str], None] | None = None,
+) -> None:
     """Verify that the Codex CLI is accessible.
 
     The user-configured ``cli_path`` is attempted first. If that fails, the
@@ -74,6 +77,10 @@ def ensure_cli_available(settings: dict | None = None) -> None:
         if candidate:
             candidates.append(candidate)
 
+    if log_fn:
+        paths_txt = ", ".join(candidates) or "<none>"
+        log_fn(f"Searching CLI paths: {paths_txt}", "info")
+
     for path in candidates:
         try:
             subprocess.run(
@@ -94,8 +101,8 @@ def ensure_cli_available(settings: dict | None = None) -> None:
             continue
 
     raise FileNotFoundError(
-        "Codex CLI is missing. Install it globally with 'npm install -g @openai/codex' "
-        "or add 'codex' to your PATH."
+        "Codex CLI is missing. Install it with 'npm install -g @openai/codex' or set the path in Settings. "
+        "See README.md#first-time-setup for manual setup steps."
     )
 
 

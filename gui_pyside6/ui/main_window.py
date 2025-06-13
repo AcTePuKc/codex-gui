@@ -414,8 +414,14 @@ class MainWindow(QMainWindow):
     ) -> None:
         if self.worker and self.worker.isRunning():
             return
+        def log_fn(text: str, level: str = "info") -> None:
+            if level == "error":
+                self.debug_console.append_error(text)
+            else:
+                self.debug_console.append_info(text)
+
         try:
-            codex_adapter.ensure_cli_available(self.settings)
+            codex_adapter.ensure_cli_available(self.settings, log_fn=log_fn)
         except FileNotFoundError as exc:
             QMessageBox.warning(self, "Codex CLI Missing", str(exc))
             self.status_bar.showMessage(str(exc))
@@ -774,8 +780,14 @@ class MainWindow(QMainWindow):
     def _run_cli_command(self, fn, done_msg: str) -> None:
         if self.worker and self.worker.isRunning():
             return
+        def log_fn(text: str, level: str = "info") -> None:
+            if level == "error":
+                self.debug_console.append_error(text)
+            else:
+                self.debug_console.append_info(text)
+
         try:
-            codex_adapter.ensure_cli_available(self.settings)
+            codex_adapter.ensure_cli_available(self.settings, log_fn=log_fn)
         except FileNotFoundError as exc:
             QMessageBox.warning(self, "Codex CLI Missing", str(exc))
             self.status_bar.showMessage(str(exc))

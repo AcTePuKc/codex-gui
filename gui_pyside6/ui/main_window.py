@@ -187,9 +187,9 @@ class MainWindow(QMainWindow):
         settings_menu = menu_bar.addMenu("Settings")
         plugins_menu = menu_bar.addMenu("Plugins")
         agents_menu = menu_bar.addMenu("Agents")
-        help_menu = menu_bar.addMenu("Help")
         history_menu = menu_bar.addMenu("History")
         view_menu = menu_bar.addMenu("View")
+        help_menu = menu_bar.addMenu("Help")
 
         self.run_action = QAction("Run", self)
         self.run_action.triggered.connect(self.start_codex)

@@ -35,6 +35,8 @@ DEFAULT_SETTINGS = {
     "writable_root": "",
     # Automatically populate the file list with detected source files
     "auto_scan_files": True,
+    # Timeout for the free credits command
+    "redeem_timeout": 30,
 }
 
 

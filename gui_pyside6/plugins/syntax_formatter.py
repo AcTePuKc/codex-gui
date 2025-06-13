@@ -53,10 +53,10 @@ def register(window) -> None:
         try:
             formatted, error = _format_text(original)
         except Exception as exc:  # pylint: disable=broad-except
-            window.output_view.append(f"Format error: {exc}")
+            window.output_view.appendPlainText(f"Format error: {exc}")
             return
         if error:
-            window.output_view.append(f"Format error: {error}")
+            window.output_view.appendPlainText(f"Format error: {error}")
             return
         if formatted is not None:
             window.prompt_edit.setPlainText(formatted)

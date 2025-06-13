@@ -63,7 +63,11 @@ cd codex-gui/gui_pyside6
 Running the script detects an active virtual environment. If none is found, it
 creates `~/.hybrid_tts/venv` (Windows: `%USERPROFILE%\.hybrid_tts\venv`) for
 the optional text-to-speech backends, installs the requirements using `uv`, and
-then launches the GUI in a separate terminal window.
+then launches the GUI in a separate terminal window. This environment persists
+for future runs and a `.deps_installed` file prevents reinstalling packages
+unless `requirements.uv.in` changes. Delete the `~/.hybrid_tts/venv` directory
+to force a fresh setup or edit the `VENV_DIR` variable near the top of
+`run_pyside6.*` if you wish to relocate it.
 
 ## First-Time Setup
 
@@ -176,8 +180,8 @@ Click **Save** to persist your selection and reload the plugins immediately.
 
 When the launcher script doesn't find an active Python virtual environment, it
 initializes one at `~/.hybrid_tts/venv` (or `%USERPROFILE%\.hybrid_tts\venv` on
-Windows) for the optional text-to-speech backends. If you don't plan to use any
-TTS features, you can safely remove this directory.
+Windows) for the optional text-to-speech backends. The folder is reused on every
+launch. Remove it if you want to reclaim space or force a reinstall.
 
 ## Credits
 

@@ -47,6 +47,12 @@ uv pip install -r requirements.uv.in
 ./run_pyside6.sh  # Windows: run_pyside6.bat
 ```
 
+The launcher creates `~/.hybrid_tts/venv` (Windows: `%USERPROFILE%\.hybrid_tts\venv`)
+on first run if no virtual environment is active and reuses it on subsequent
+launches. Dependencies are only reinstalled when `requirements.uv.in` changes.
+Delete this folder to start fresh or edit the `VENV_DIR` variable in
+`run_pyside6.*` to move it elsewhere.
+
 ---
 
 ## Architecture
@@ -213,7 +219,7 @@ Current examples:
 - **Agents**: Drop a JSON file into `resources/agents/`. New files are loaded on startup.
 - **Plugins**: Place your module inside `gui_pyside6/plugins/` and list it in `plugins/manifest.json`. Only entries with `"enabled": true` are imported.
 - **Interface**: Each plugin exports a `register(window)` function which receives the main window instance so you can add widgets or hook signals.
-  - Some plugins require additional packages. The helper `ensure_backend_installed()` first checks if you are running inside a virtual environment. If not, it creates a user-scoped environment at `~/.hybrid_tts/venv` (Windows: `%USERPROFILE%\.hybrid_tts\venv`) and installs the dependencies there. Activate your own virtual environment before launching the app if you want packages to be installed elsewhere.
+  - Some plugins require additional packages. The helper `ensure_backend_installed()` first checks if you are running inside a virtual environment. If not, it creates a user-scoped environment at `~/.hybrid_tts/venv` (Windows: `%USERPROFILE%\.hybrid_tts\venv`) and installs the dependencies there. This directory is reused across launches. Activate your own virtual environment before starting the app if you want packages installed elsewhere.
 
 ---
 

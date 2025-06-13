@@ -31,6 +31,8 @@ DEFAULT_SETTINGS = {
     "no_project_doc": False,
     "disable_response_storage": False,
     "writable_root": "",
+    # Automatically populate the file list with detected source files
+    "auto_scan_files": True,
 }
 
 

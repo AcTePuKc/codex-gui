@@ -178,6 +178,12 @@ class SettingsDialog(QDialog):
         )
         layout.addWidget(self.disable_storage_check)
 
+        self.auto_scan_check = QCheckBox("Auto Scan Files")
+        self.auto_scan_check.setChecked(
+            bool(settings.get("auto_scan_files", True))
+        )
+        layout.addWidget(self.auto_scan_check)
+
         layout.addWidget(QLabel("Project Doc:"))
         project_doc_row = QWidget()
         project_doc_layout = QHBoxLayout(project_doc_row)
@@ -402,6 +408,7 @@ class SettingsDialog(QDialog):
         )
         self.settings["project_doc"] = self.project_doc_edit.text().strip()
         self.settings["writable_root"] = self.writable_root_edit.text().strip()
+        self.settings["auto_scan_files"] = self.auto_scan_check.isChecked()
         save_settings(self.settings)
         super().accept()
 

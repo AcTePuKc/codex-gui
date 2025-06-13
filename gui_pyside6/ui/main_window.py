@@ -477,7 +477,7 @@ class MainWindow(QMainWindow):
         image_paths = [
             self.image_list.item(i).text() for i in range(self.image_list.count())
         ]
-        if self.file_list.count() == 0:
+        if self.settings.get("auto_scan_files", True) and self.file_list.count() == 0:
             for path in self.suggest_source_files():
                 self.file_list.addItem(path)
         file_paths = [

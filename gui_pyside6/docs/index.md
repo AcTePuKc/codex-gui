@@ -129,7 +129,7 @@ The main window uses a horizontal splitter:
 - **Center panel** - prompt editor with streaming output beneath.
 - **Right panel** - scrollable history of the session.
 
-Run and Stop actions appear in both a toolbar at the top and a button bar below
+Send and Stop actions appear in both a toolbar at the top and a button bar below
 the editor. The bottom status bar shows the active agent and session updates.
 If the CLI fails, its stderr messages are printed in the output panel.
 Detailed stdout and stderr are also routed to the **Debug Console**.

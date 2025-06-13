@@ -211,7 +211,7 @@ class MainWindow(QMainWindow):
         view_menu = menu_bar.addMenu("View")
         help_menu = menu_bar.addMenu("Help")
 
-        self.run_action = QAction("Run", self)
+        self.run_action = QAction("Send", self)
         self.run_action.triggered.connect(self.start_codex)
         file_menu.addAction(self.run_action)
 
@@ -417,7 +417,7 @@ class MainWindow(QMainWindow):
         center_layout.addLayout(button_bar)
         self.button_bar = button_bar
 
-        self.run_btn = QPushButton("Run")
+        self.run_btn = QPushButton("Send")
         self.run_btn.clicked.connect(self.start_codex)
         button_bar.addWidget(self.run_btn)
 

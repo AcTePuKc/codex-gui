@@ -16,6 +16,8 @@ from PySide6.QtWidgets import (
     QScrollArea,
     QWidget,
     QMessageBox,
+    QGroupBox,
+    QFormLayout,
 )
 
 import json
@@ -52,42 +54,45 @@ class SettingsDialog(QDialog):
         scroll_area.setWidgetResizable(True)
         scroll_widget = QWidget()
         layout = QVBoxLayout(scroll_widget)
+        layout.setSpacing(12)
         scroll_area.setWidget(scroll_widget)
         main_layout.addWidget(scroll_area)
 
-        layout.addWidget(QLabel("Temperature:"))
+        params_group = QGroupBox("Model Parameters")
+        params_layout = QFormLayout(params_group)
+        params_layout.setContentsMargins(0, 0, 0, 0)
+
         self.temp_spin = QDoubleSpinBox()
         self.temp_spin.setRange(0.0, 1.0)
         self.temp_spin.setSingleStep(0.1)
         self.temp_spin.setValue(float(settings.get("temperature", 0.5)))
-        layout.addWidget(self.temp_spin)
+        params_layout.addRow("Temperature:", self.temp_spin)
 
-        layout.addWidget(QLabel("Top-p:"))
         self.top_p_spin = QDoubleSpinBox()
         self.top_p_spin.setRange(0.0, 1.0)
         self.top_p_spin.setSingleStep(0.1)
         self.top_p_spin.setValue(float(settings.get("top_p", 1.0)))
-        layout.addWidget(self.top_p_spin)
+        params_layout.addRow("Top-p:", self.top_p_spin)
 
-        layout.addWidget(QLabel("Frequency Penalty:"))
         self.freq_spin = QDoubleSpinBox()
         self.freq_spin.setRange(-2.0, 2.0)
         self.freq_spin.setSingleStep(0.1)
         self.freq_spin.setValue(float(settings.get("frequency_penalty", 0.0)))
-        layout.addWidget(self.freq_spin)
+        params_layout.addRow("Frequency Penalty:", self.freq_spin)
 
-        layout.addWidget(QLabel("Presence Penalty:"))
         self.presence_spin = QDoubleSpinBox()
         self.presence_spin.setRange(-2.0, 2.0)
         self.presence_spin.setSingleStep(0.1)
         self.presence_spin.setValue(float(settings.get("presence_penalty", 0.0)))
-        layout.addWidget(self.presence_spin)
+        params_layout.addRow("Presence Penalty:", self.presence_spin)
 
-        layout.addWidget(QLabel("Max Tokens:"))
         self.max_spin = QSpinBox()
         self.max_spin.setRange(1, 4096)
         self.max_spin.setValue(int(settings.get("max_tokens", 1024)))
-        layout.addWidget(self.max_spin)
+        params_layout.addRow("Max Tokens:", self.max_spin)
+
+        layout.addWidget(params_group)
+        layout.addSpacing(16)
 
         layout.addWidget(QLabel("Provider:"))
         provider_row = QWidget()
@@ -122,16 +127,17 @@ class SettingsDialog(QDialog):
         layout.addWidget(QLabel("Approval Mode:"))
         self.approval_combo = QComboBox()
         self.approval_combo.addItems(["suggest", "auto-edit", "full-auto"])
-        self.approval_combo.setCurrentText(settings.get("approval_mode", "suggest"))
+        approval = settings.get("approval_mode")
+        if approval is None:
+            if settings.get("full_auto"):
+                approval = "full-auto"
+            elif settings.get("auto_edit"):
+                approval = "auto-edit"
+            else:
+                approval = "suggest"
+        self.approval_combo.setCurrentText(approval)
         layout.addWidget(self.approval_combo)
-
-        self.auto_edit_check = QCheckBox("Auto Edit")
-        self.auto_edit_check.setChecked(bool(settings.get("auto_edit", False)))
-        layout.addWidget(self.auto_edit_check)
-
-        self.full_auto_check = QCheckBox("Full Auto")
-        self.full_auto_check.setChecked(bool(settings.get("full_auto", False)))
-        layout.addWidget(self.full_auto_check)
+        layout.addSpacing(16)
 
         layout.addWidget(QLabel("Reasoning Effort:"))
         self.reason_combo = QComboBox()
@@ -409,9 +415,10 @@ class SettingsDialog(QDialog):
         self.settings["max_tokens"] = int(self.max_spin.value())
         self.settings["provider"] = self.provider_combo.currentData() or "openai"
         self.settings["model"] = self.model_combo.currentText().strip()
-        self.settings["approval_mode"] = self.approval_combo.currentText()
-        self.settings["auto_edit"] = self.auto_edit_check.isChecked()
-        self.settings["full_auto"] = self.full_auto_check.isChecked()
+        approval = self.approval_combo.currentText()
+        self.settings["approval_mode"] = approval
+        self.settings["auto_edit"] = approval == "auto-edit"
+        self.settings["full_auto"] = approval == "full-auto"
         self.settings["reasoning"] = self.reason_combo.currentText()
         self.settings["flex_mode"] = self.flex_check.isChecked()
         self.settings["quiet"] = self.quiet_check.isChecked()

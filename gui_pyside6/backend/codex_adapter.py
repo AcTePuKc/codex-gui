@@ -113,8 +113,16 @@ def build_command(
     view: str | None = None,
     images: list[str] | None = None,
     files: list[str] | None = None,
+    cwd: str | None = None,
 ) -> list[str]:
-    """Construct the Codex CLI command from agent and settings."""
+    """Construct the Codex CLI command from agent and settings.
+
+    Parameters
+    ----------
+    cwd : str | None, optional
+        Working directory for the Codex process. Included for convenience but
+        not used directly when building the argument list.
+    """
     settings = settings or {}
 
     cli_exe = settings.get("cli_path") or "codex"
@@ -199,6 +207,7 @@ def start_session(
     view: str | None = None,
     images: list[str] | None = None,
     files: list[str] | None = None,
+    cwd: str | None = None,
 ) -> Iterable[str]:
     """Start a Codex CLI session with the given prompt and agent.
 
@@ -217,6 +226,8 @@ def start_session(
         are not already provided by ``agent``.
     files: list[str] | None, optional
         Paths to include via ``--file`` flags.
+    cwd: str | None, optional
+        Working directory to run the Codex process in.
 
     Yields
     ------
@@ -241,6 +252,7 @@ def start_session(
         view=view,
         images=images,
         files=files,
+        cwd=cwd,
     )
     _terminated = False
     process = subprocess.Popen(
@@ -249,6 +261,7 @@ def start_session(
         stderr=subprocess.PIPE,
         text=True,
         bufsize=1,
+        cwd=cwd,
     )
     _current_process = process
 

@@ -102,6 +102,7 @@ class CodexWorker(QThread):
 
     line_received = Signal(str)
     log_line = Signal(str, str)  # level, text
+    error = Signal(str)
     finished = Signal()
 
     def __init__(
@@ -142,6 +143,7 @@ class CodexWorker(QThread):
                 self.log_line.emit("error", err_line)
             self.line_received.emit(f"Error: {exc}")
             self.log_line.emit("error", str(exc))
+            self.error.emit(exc.stderr.strip() or str(exc))
         except Exception as exc:  # pylint: disable=broad-except
             self.line_received.emit(f"Error: {exc}")
             self.log_line.emit("error", str(exc))
@@ -196,6 +198,7 @@ class MainWindow(QMainWindow):
         self.agent_manager = agent_manager
         self.settings = settings
         self.worker: QThread | None = None
+        self._session_failed = False
 
         self.setWindowTitle("Codex-GUI")
 
@@ -523,8 +526,10 @@ class MainWindow(QMainWindow):
             files=file_paths,
             cwd=cwd_arg,
         )
+        self._session_failed = False
         self.worker.line_received.connect(self.append_output)
         self.worker.log_line.connect(self.handle_log_line)
+        self.worker.error.connect(self._session_error)
         self.worker.finished.connect(self.session_finished)
         self.worker.start()
         self.run_btn.setEnabled(False)
@@ -565,7 +570,10 @@ class MainWindow(QMainWindow):
         self.stop_btn.setEnabled(False)
         self.run_action.setEnabled(True)
         self.stop_action.setEnabled(False)
-        self.status_bar.showMessage("Session finished")
+        if self._session_failed:
+            self.status_bar.showMessage("Session failed")
+        else:
+            self.status_bar.showMessage("Session finished")
         logger.info("Session finished")
 
     def stop_codex(self) -> None:
@@ -915,6 +923,13 @@ class MainWindow(QMainWindow):
         self.free_action.setEnabled(False)
         self.status_bar.showMessage("Running command...")
         self.worker.start()
+
+    def _session_error(self, stderr: str) -> None:
+        QMessageBox.warning(
+            self, "Session Failed", stderr.strip() or "An unknown error occurred"
+        )
+        self.status_bar.showMessage("Session failed")
+        self._session_failed = True
 
     def _command_error(self, stderr: str) -> None:
         QMessageBox.warning(

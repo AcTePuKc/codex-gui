@@ -30,8 +30,23 @@ fi
 
 # Ensure the Codex CLI is installed only if missing
 if ! command -v codex >/dev/null 2>&1; then
-    echo "Installing @openai/codex globally using $PKG_MGR..."
-    $PKG_MGR install -g @openai/codex
+    echo "Codex CLI not found. Attempting global install using $PKG_MGR..."
+    if $PKG_MGR install -g @openai/codex --timeout=15000 >/dev/null 2>&1; then
+        echo "Codex CLI successfully installed."
+    else
+        echo
+        echo "[WARN] First install attempt failed. Trying with alternative mirror..."
+        if $PKG_MGR install -g @openai/codex --registry=https://registry.npmmirror.com --timeout=15000; then
+            echo "Codex CLI installed using mirror registry."
+        else
+            echo
+            echo "Failed to install @openai/codex using mirror."
+            echo "You may need to install it manually:"
+            echo "    $PKG_MGR install -g @openai/codex --registry=https://registry.npmmirror.com"
+        fi
+    fi
+else
+    echo "Codex CLI already installed."
 fi
 
 # Detect if an active virtual environment is in use

@@ -22,14 +22,20 @@ def register(window) -> None:
     player.setAudioOutput(audio_output)
 
     def cleanup(tmp_path: Path) -> None:
+        """Delete the temporary MP3 file if it exists."""
         if tmp_path.exists():
             tmp_path.unlink(missing_ok=True)
 
-    def on_finished() -> None:
-        cleanup(current[0])
-
     current: list[Path] = [Path()]
-    player.playbackStateChanged.connect(lambda _: on_finished())
+
+    def on_state_changed(state: QMediaPlayer.PlaybackState) -> None:
+        """Release and delete the current file when playback stops."""
+        if state == QMediaPlayer.StoppedState:
+            # Clear the source so the file handle can be released
+            player.setSource(QUrl())
+            cleanup(current[0])
+
+    player.playbackStateChanged.connect(on_state_changed)
 
     def on_click() -> None:
         text = window.prompt_edit.toPlainText().strip()

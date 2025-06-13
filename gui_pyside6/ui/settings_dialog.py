@@ -30,6 +30,7 @@ from ..backend.model_manager import get_available_models
 from ..backend import codex_adapter
 from ..utils.api_key import ensure_api_key
 from .api_keys_dialog import ApiKeysDialog
+from .. import logger
 
 
 class SettingsDialog(QDialog):
@@ -246,8 +247,7 @@ class SettingsDialog(QDialog):
                 if shutil.which("ollama"):
                     commands = [["ollama", "list", "--json"], ["ollama", "ls", "--json"]]
                     for cmd in commands:
-                        if self.debug_console:
-                            self.debug_console.append_info("$ " + " ".join(cmd))
+                        logger.info("$ " + " ".join(cmd))
                         try:
                             result = subprocess.run(
                                 cmd,
@@ -256,9 +256,9 @@ class SettingsDialog(QDialog):
                                 timeout=5,
                                 check=False,
                             )
-                            if result.stderr and self.debug_console:
+                            if result.stderr:
                                 for line in result.stderr.splitlines():
-                                    self.debug_console.append_error(line)
+                                    logger.error(line)
                             for line in result.stdout.splitlines():
                                 try:
                                     data = json.loads(line)
@@ -270,13 +270,27 @@ class SettingsDialog(QDialog):
                             if models:
                                 break
                         except Exception as exc:  # pylint: disable=broad-except
-                            if self.debug_console:
-                                self.debug_console.append_error(str(exc))
+                            logger.error(str(exc))
 
-                    if self.debug_console:
-                        cmd = ["ollama", "ps", "--json"]
-                        self.debug_console.append_info("$ " + " ".join(cmd))
-                        try:
+                    cmd = ["ollama", "ps", "--json"]
+                    logger.info("$ " + " ".join(cmd))
+                    try:
+                        result = subprocess.run(
+                            cmd,
+                            capture_output=True,
+                            text=True,
+                            timeout=5,
+                            check=False,
+                        )
+                        stderr_lower = (result.stderr or "").lower()
+                        unknown_flag = "unknown flag" in stderr_lower
+                        if unknown_flag or result.returncode != 0:
+                            if result.stderr:
+                                for line in result.stderr.splitlines():
+                                    if "unknown flag" not in line.lower():
+                                        logger.error(line)
+                            cmd = ["ollama", "ps"]
+                            logger.info("$ " + " ".join(cmd))
                             result = subprocess.run(
                                 cmd,
                                 capture_output=True,
@@ -284,47 +298,31 @@ class SettingsDialog(QDialog):
                                 timeout=5,
                                 check=False,
                             )
-                            stderr_lower = (result.stderr or "").lower()
-                            unknown_flag = "unknown flag" in stderr_lower
-                            if unknown_flag or result.returncode != 0:
-                                if result.stderr:
-                                    for line in result.stderr.splitlines():
-                                        if "unknown flag" not in line.lower():
-                                            self.debug_console.append_error(line)
-                                cmd = ["ollama", "ps"]
-                                self.debug_console.append_info("$ " + " ".join(cmd))
-                                result = subprocess.run(
-                                    cmd,
-                                    capture_output=True,
-                                    text=True,
-                                    timeout=5,
-                                    check=False,
-                                )
-                                if result.stderr:
-                                    for line in result.stderr.splitlines():
-                                        self.debug_console.append_error(line)
-                                for line in result.stdout.splitlines():
-                                    line = line.strip()
-                                    if not line or line.lower().startswith("name"):
-                                        continue
-                                    self.debug_console.append_info(line)
-                            else:
+                            if result.stderr:
                                 for line in result.stderr.splitlines():
-                                    self.debug_console.append_error(line)
-                                for line in result.stdout.splitlines():
-                                    try:
-                                        data = json.loads(line)
-                                    except json.JSONDecodeError:
-                                        continue
-                                    name = data.get("name")
-                                    status = data.get("status")
-                                    if name:
-                                        msg = f"Running model: {name}"
-                                        if status:
-                                            msg += f" ({status})"
-                                        self.debug_console.append_info(msg)
-                        except Exception as exc:  # pylint: disable=broad-except
-                            self.debug_console.append_error(str(exc))
+                                    logger.error(line)
+                            for line in result.stdout.splitlines():
+                                line = line.strip()
+                                if not line or line.lower().startswith("name"):
+                                    continue
+                                logger.info(line)
+                        else:
+                            for line in result.stderr.splitlines():
+                                logger.error(line)
+                            for line in result.stdout.splitlines():
+                                try:
+                                    data = json.loads(line)
+                                except json.JSONDecodeError:
+                                    continue
+                                name = data.get("name")
+                                status = data.get("status")
+                                if name:
+                                    msg = f"Running model: {name}"
+                                    if status:
+                                        msg += f" ({status})"
+                                    logger.info(msg)
+                    except Exception as exc:  # pylint: disable=broad-except
+                        logger.error(str(exc))
 
                 if not models:
                     search_paths = [
@@ -433,20 +431,17 @@ class SettingsDialog(QDialog):
     def check_cli(self) -> None:
         """Verify the Codex CLI path and log search details."""
         def log_fn(text: str, level: str = "info") -> None:
-            if not self.debug_console:
-                return
             if level == "error":
-                self.debug_console.append_error(text)
+                logger.error(text)
             else:
-                self.debug_console.append_info(text)
+                logger.info(text)
 
         tmp_settings = self.settings.copy()
         tmp_settings["cli_path"] = self.cli_edit.text().strip()
         try:
             codex_adapter.ensure_cli_available(tmp_settings, log_fn=log_fn)
         except FileNotFoundError as exc:
-            if self.debug_console:
-                self.debug_console.append_error(str(exc))
+            logger.error(str(exc))
             QMessageBox.warning(self, "Codex CLI Missing", str(exc))
             return
 

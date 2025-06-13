@@ -39,6 +39,7 @@ from .tools_panel import ToolsPanel
 from .debug_console import DebugConsole
 from .agent_editor_dialog import AgentEditorDialog, AgentJsonDialog
 from ..backend.settings_manager import save_settings
+from .. import logger
 
 from ..backend import codex_adapter
 from ..backend.agent_manager import AgentManager
@@ -453,16 +454,16 @@ class MainWindow(QMainWindow):
 
         def log_fn(text: str, level: str = "info") -> None:
             if level == "error":
-                self.debug_console.append_error(text)
+                logger.error(text)
             else:
-                self.debug_console.append_info(text)
+                logger.info(text)
 
         try:
             codex_adapter.ensure_cli_available(self.settings, log_fn=log_fn)
         except FileNotFoundError as exc:
             QMessageBox.warning(self, "Codex CLI Missing", str(exc))
             self.status_bar.showMessage(str(exc))
-            self.debug_console.append_error(str(exc))
+            logger.error(str(exc))
             return
         provider = self.settings.get("provider", "openai")
         if provider not in {"local", "custom"}:
@@ -501,7 +502,7 @@ class MainWindow(QMainWindow):
         )
         if self.settings.get("verbose"):
             self.append_output("$ " + " ".join(cmd))
-        self.debug_console.append_info("$ " + " ".join(cmd))
+        logger.info("$ " + " ".join(cmd))
         self.worker = CodexWorker(
             prompt_text,
             agent,
@@ -544,9 +545,9 @@ class MainWindow(QMainWindow):
 
     def handle_log_line(self, level: str, text: str) -> None:
         if level == "error":
-            self.debug_console.append_error(text)
+            logger.error(text)
         else:
-            self.debug_console.append_info(text)
+            logger.info(text)
 
     def session_finished(self) -> None:
         self.run_btn.setEnabled(True)
@@ -554,14 +555,14 @@ class MainWindow(QMainWindow):
         self.run_action.setEnabled(True)
         self.stop_action.setEnabled(False)
         self.status_bar.showMessage("Session finished")
-        self.debug_console.append_info("Session finished")
+        logger.info("Session finished")
 
     def stop_codex(self) -> None:
         codex_adapter.stop_session()
         if self.worker and self.worker.isRunning():
             self.worker.wait(1000)
         self.session_finished()
-        self.debug_console.append_info("Codex session stopped")
+        logger.info("Codex session stopped")
 
     def on_agent_changed(self, name: str) -> None:
         """Handle selection changes in the agent list."""
@@ -875,16 +876,16 @@ class MainWindow(QMainWindow):
 
         def log_fn(text: str, level: str = "info") -> None:
             if level == "error":
-                self.debug_console.append_error(text)
+                logger.error(text)
             else:
-                self.debug_console.append_info(text)
+                logger.info(text)
 
         try:
             codex_adapter.ensure_cli_available(self.settings, log_fn=log_fn)
         except FileNotFoundError as exc:
             QMessageBox.warning(self, "Codex CLI Missing", str(exc))
             self.status_bar.showMessage(str(exc))
-            self.debug_console.append_error(str(exc))
+            logger.error(str(exc))
             return
         self.output_view.clear()
         self.worker = CodexCommandWorker(fn)
@@ -910,7 +911,7 @@ class MainWindow(QMainWindow):
         self.login_action.setEnabled(True)
         self.free_action.setEnabled(True)
         self.status_bar.showMessage(msg)
-        self.debug_console.append_info(msg)
+        logger.info(msg)
         self.worker = None
 
     def closeEvent(self, event) -> None:  # type: ignore[override]

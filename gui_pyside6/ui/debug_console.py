@@ -9,7 +9,11 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QPushButton,
 )
+import logging
+
 from PySide6.QtCore import Qt
+
+from .. import logger
 
 
 class DebugConsole(QDockWidget):
@@ -45,6 +49,24 @@ class DebugConsole(QDockWidget):
         self._entries: list[tuple[str, str]] = []  # (level, text)
 
         self.setWidget(container)
+
+        class _LogHandler(logging.Handler):
+            def __init__(self, console: DebugConsole) -> None:
+                super().__init__()
+                self.console = console
+
+            def emit(self, record: logging.LogRecord) -> None:
+                msg = self.format(record)
+                level = "error" if record.levelno >= logging.ERROR else "info"
+                self.console.append(msg, level)
+
+        self._handler = _LogHandler(self)
+        self._handler.setFormatter(logging.Formatter("%(message)s"))
+        logger.addHandler(self._handler)
+
+    def closeEvent(self, event) -> None:  # type: ignore[override]
+        logger.removeHandler(self._handler)
+        super().closeEvent(event)
 
     def append(self, text: str, level: str = "info") -> None:
         self._entries.append((level, text))

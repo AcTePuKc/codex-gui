@@ -187,6 +187,12 @@ any running tools. Toggle it from **View -> Debug Console**. The window offers
 **Info** and **Errors** checkboxes to filter messages and a **Clear** button to
 reset the log.
 
+### File Logging
+
+By default the GUI records INFO and ERROR messages to `logs/gui.log`. Set the
+environment variable `CODEX_GUI_LOGGING=0` before launching to disable this
+file logging while keeping the Debug Console active.
+
 ## Docs
 
 For agent presets, architecture decisions, and developer info, see:

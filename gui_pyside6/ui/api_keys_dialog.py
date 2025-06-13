@@ -62,8 +62,7 @@ class ApiKeysDialog(QDialog):
         if not provider:
             QMessageBox.information(self, "No Selection", "Please select a provider.")
             return
-        dialog = ApiKeyDialog(self)
-        dialog.setWindowTitle(f"{provider.capitalize()} API Key")
+        dialog = ApiKeyDialog(provider, self)
         dialog.key_edit.setText(self.keys.get(provider, ""))
         dialog.remember_check.setChecked(True)
         if dialog.exec() == QDialog.Accepted:

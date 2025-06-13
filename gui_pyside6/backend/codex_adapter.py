@@ -226,7 +226,7 @@ def build_command(
             if path_str:
                 cmd.extend(["--file", path_str])
 
-    cmd.append(prompt)
+    cmd.append(str(prompt))
     return cmd
 
 

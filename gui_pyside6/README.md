@@ -1,3 +1,4 @@
+# Broken! WIP! NOT Working!
 # Codex-GUI
 
 A full-featured **PySide6-based GUI** frontend for [OpenAI's Codex CLI](https://github.com/openai/codex).
